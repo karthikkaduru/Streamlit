@@ -62,7 +62,6 @@ def get_store_count(sql_query):
 
 # Function to create a fixed plot for sales
 def create_sales_plot(node_name):
-    # Filter sales data for the specific location
     location_sales = stores_df[stores_df['location'] == node_name]
     plt.figure()
     plt.bar(location_sales['store_name'], location_sales['sales'], color='skyblue')
@@ -91,28 +90,30 @@ if 'plot_visibility' not in st.session_state:
     st.session_state.plot_visibility = {node['id']: False for node in nodes_data}
 
 # Display nodes with details and toggle button for plots
-for node in nodes_data:
+cols = st.columns(len(nodes_data))  # Create columns based on number of nodes
+
+for i, node in enumerate(nodes_data):
     node_id = node['id']
     node_name = node['node_name']
     attributes = node['attributes']
     store_count = get_store_count(attributes['sql_query'])
 
-    # Create a toggle button with detailed information
-    button_label = f"""
-    {node_name}
-    ---
-    Node ID:{node_id}  
-    Incident: [{attributes['incident_number']}] 
-    Stores: {store_count}
-    """
-    
-    if st.button(button_label, key=node_id):
-        # Toggle visibility
-        st.session_state.plot_visibility[node_id] = not st.session_state.plot_visibility[node_id]
+    with cols[i]:  # Place button in the respective column
+        button_label = f"""
+        {node_name}
+        ---
+        Node ID: {node_id}  
+        Incident: [{attributes['incident_number']}] 
+        Stores: {store_count}
+        """
+        
+        if st.button(button_label, key=node_id):
+            # Toggle visibility
+            st.session_state.plot_visibility[node_id] = not st.session_state.plot_visibility[node_id]
 
-    # Show plot if visibility is true
-    if st.session_state.plot_visibility[node_id]:
-        create_sales_plot(node_name)
+        # Show plot if visibility is true
+        if st.session_state.plot_visibility[node_id]:
+            create_sales_plot(node_name)
 
 # Button to display the network graph
 if st.button("Show Network Graph"):
@@ -121,3 +122,4 @@ if st.button("Show Network Graph"):
     nx.draw(G, pos, with_labels=True, node_size=2000, node_color='lightblue', font_size=10, font_weight='bold', arrows=True)
     plt.title("Flowchart of Nodes")
     st.pyplot(plt)
+
