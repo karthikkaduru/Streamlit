@@ -72,34 +72,7 @@ def create_sales_plot(node_name):
     st.pyplot(plt)
 
 # Streamlit App
-st.set_page_config(page_title="Node Visualization Flowchart", layout="wide")
 st.title("Node Visualization Flowchart")
-
-# Custom CSS for styling
-st.markdown(
-    """
-    <style>
-    .button {
-        background-color: #4CAF50; /* Green */
-        border: none;
-        color: white;
-        padding: 15px 32px;
-        text-align: center;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 16px;
-        margin: 4px 2px;
-        cursor: pointer;
-        border-radius: 8px;
-        transition: background-color 0.3s;
-    }
-    .button:hover {
-        background-color: #45a049;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
 
 # Create a network graph
 G = nx.DiGraph()
@@ -131,16 +104,14 @@ for i, node in enumerate(nodes_data):
 
     with cols[i]:  # Place button in the respective column
         button_label = f"""
-        <div class="button">
-            <h4>{node_name}</h4>
-            <hr>
-            <p><strong>Node ID:</strong> {node_id}</p>
-            <p><strong>Incident:</strong> [{attributes['incident_number']}]</p>
-            <p><strong>Stores:</strong> {store_count}</p>
-        </div>
+        {node_name}
+        ---
+        Node ID: {node_id}  
+        Incident: [{attributes['incident_number']}] 
+        Stores: {store_count}
         """
         
-        if st.button("Toggle Plot", key=node_id):
+        if st.button(button_label, key=node_id):
             # Toggle visibility for each node plot
             st.session_state.plot_visibility[node_id] = not st.session_state.plot_visibility[node_id]
 
@@ -149,7 +120,7 @@ for i, node in enumerate(nodes_data):
             create_sales_plot(node_name)
 
 # Button to display the network graph
-if st.button("Toggle Network Graph"):
+if st.button("Show Network Graph"):
     st.session_state.graph_visible = not st.session_state.graph_visible  # Toggle graph visibility
 
 # Show network graph if it is visible
