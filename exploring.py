@@ -50,7 +50,8 @@ links_data = json.loads(links_json)
 # Sample data to simulate a database
 data = {
     'location': ['Location-1', 'Location-1', 'Location-2', 'Location-3', 'Location-3', 'Location-3'],
-    'store_name': ['Store A', 'Store B', 'Store C', 'Store D', 'Store E', 'Store F']
+    'store_name': ['Store A', 'Store B', 'Store C', 'Store D', 'Store E', 'Store F'],
+    'sales': np.random.randint(100, 500, size=6)  # Random sales data
 }
 stores_df = pd.DataFrame(data)
 
@@ -59,16 +60,16 @@ def get_store_count(sql_query):
     location = sql_query.split("'")[1]  # Extract location from query
     return stores_df[stores_df['location'] == location].shape[0]
 
-# Function to create a random plot
-def create_random_plot(node_name):
-    x = np.linspace(0, 10, 100)
-    y = np.random.rand(100) * 10  # Random data
+# Function to create a random plot for sales
+def create_sales_plot(node_name):
+    # Filter sales data for the specific location
+    location_sales = stores_df[stores_df['location'] == node_name]
     plt.figure()
-    plt.plot(x, y, label=f"Random Data for {node_name}")
-    plt.title(f"Random Plot for {node_name}")
-    plt.xlabel("X-axis")
-    plt.ylabel("Y-axis")
-    plt.legend()
+    plt.bar(location_sales['store_name'], location_sales['sales'], color='skyblue')
+    plt.title(f"Sales Data for {node_name}")
+    plt.xlabel("Store Name")
+    plt.ylabel("Sales")
+    plt.xticks(rotation=45)
     st.pyplot(plt)
 
 # Streamlit App
@@ -102,20 +103,17 @@ for idx, node in enumerate(nodes_data):
     
     # Create a button for each node
     if st.button(button_label, key=node_id):
-        # Toggle graph visibility
-        if st.session_state.current_node == node_id:
-            st.session_state.show_graph = not st.session_state.show_graph
-            st.session_state.current_node = None if not st.session_state.show_graph else node_id
-        else:
-            st.session_state.show_graph = True
-            st.session_state.current_node = node_id
+        st.session_state.current_node = node_id  # Set current node for plot generation
 
-    # Draw connecting lines if applicable
-    if idx < len(nodes_data) - 1:  # Connect current node to the next node
-        st.markdown("<hr style='border: 1px dashed blue;'>", unsafe_allow_html=True)
+        # Generate and display sales plot
+        create_sales_plot(node_name)
+
+# Button to display the network graph
+if st.button("Show Network Graph"):
+    st.session_state.show_graph = True
 
 # Draw the graph to show links
-if st.session_state.show_graph and st.session_state.current_node:
+if st.session_state.show_graph:
     plt.figure(figsize=(10, 5))
     pos = nx.spring_layout(G)  # positions for all nodes
     nx.draw(G, pos, with_labels=True, node_size=2000, node_color='lightblue', font_size=10, font_weight='bold', arrows=True)
