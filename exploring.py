@@ -1,7 +1,6 @@
 import streamlit as st
 import numpy as np
-import matplotlib.pyplot as plt
-import networkx as nx
+import plotly.graph_objects as go
 import json
 import pandas as pd
 
@@ -59,51 +58,77 @@ def get_store_count(sql_query):
     location = sql_query.split("'")[1]  # Extract location from query
     return stores_df[stores_df['location'] == location].shape[0]
 
-# Function to create a random plot
-def create_random_plot(node_name):
-    x = np.linspace(0, 10, 100)
-    y = np.random.rand(100) * 10  # Random data
-    plt.figure()
-    plt.plot(x, y, label=f"Random Data for {node_name}")
-    plt.title(f"Random Plot for {node_name}")
-    plt.xlabel("X-axis")
-    plt.ylabel("Y-axis")
-    plt.legend()
-    st.pyplot(plt)
-
 # Streamlit App
-st.title("Node Visualization Flowchart")
+st.title("Interactive Node Visualization Flowchart")
 
-# Create a network graph
-G = nx.DiGraph()
+# Create a list to store node positions
+node_positions = {
+    "1": (0, 0),
+    "2": (1, 1),
+    "3": (1, -1)
+}
 
-# Add nodes and edges to the graph
-for node in nodes_data:
-    node_id = node['id']
-    G.add_node(node_id, name=node['node_name'], incident_number=node['attributes']['incident_number'])
-
+# Create Plotly graph
+edge_x = []
+edge_y = []
 for link in links_data:
-    G.add_edge(link['source'], link['target'])
+    x0, y0 = node_positions[link['source']]
+    x1, y1 = node_positions[link['target']]
+    edge_x.append(x0)
+    edge_x.append(x1)
+    edge_x.append(None)  # Break line
+    edge_y.append(y0)
+    edge_y.append(y1)
+    edge_y.append(None)  # Break line
 
-# Display nodes with details
+# Create edges
+edges_trace = go.Scatter(
+    x=edge_x, y=edge_y,
+    line=dict(width=0.5, color='#888'),
+    hoverinfo='none',
+    mode='lines'
+)
+
+# Create nodes
+node_x = []
+node_y = []
+node_text = []
 for node in nodes_data:
     node_id = node['id']
     node_name = node['node_name']
-    attributes = node['attributes']
-    store_count = get_store_count(attributes['sql_query'])
+    incident_number = node['attributes']['incident_number']
+    store_count = get_store_count(node['attributes']['sql_query'])
+    
+    node_x.append(node_positions[node_id][0])
+    node_y.append(node_positions[node_id][1])
+    node_text.append(f"{node_name}<br>Incident: {incident_number}<br>Stores: {store_count}")
 
-    # Create a button for each node
-    if st.button(node_name):
-        st.write(f"**Node ID:** {node_id}")
-        st.write(f"**Incident Number:** [{attributes['incident_number']}](https://www.example.com/{attributes['incident_number']})")
-        st.write(f"**Number of Stores:** {store_count}")
-        
-        # Display the random plot
-        create_random_plot(node_name)
+nodes_trace = go.Scatter(
+    x=node_x, y=node_y,
+    mode='markers+text',
+    marker=dict(
+        showscale=True,
+        colorscale='YlGnBu',
+        size=20,
+        color=[],
+        line_width=2
+    ),
+    text=node_text,
+    textposition="top center",
+    hoverinfo='text'
+)
 
-# Draw the graph to show links
-plt.figure(figsize=(10, 5))
-pos = nx.spring_layout(G)  # positions for all nodes
-nx.draw(G, pos, with_labels=True, node_size=2000, node_color='lightblue', font_size=10, font_weight='bold', arrows=True)
-plt.title("Flowchart of Nodes")
-st.pyplot(plt)
+# Create the figure
+fig = go.Figure(data=[edges_trace, nodes_trace],
+                layout=go.Layout(
+                    title='Interactive Flowchart of Nodes',
+                    titlefont=dict(size=16),
+                    showlegend=False,
+                    hovermode='closest',
+                    margin=dict(b=0,l=0,r=0,t=40),
+                    xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                    yaxis=dict(showgrid=False, zeroline=False, showticklabels=False))
+                )
+
+# Display the figure
+st.plotly_chart(fig)
