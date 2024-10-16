@@ -89,6 +89,10 @@ for link in links_data:
 if 'plot_visibility' not in st.session_state:
     st.session_state.plot_visibility = {node['id']: False for node in nodes_data}
 
+# Store network graph visibility state
+if 'graph_visible' not in st.session_state:
+    st.session_state.graph_visible = False
+
 # Display nodes with details and toggle button for plots
 cols = st.columns(len(nodes_data))  # Create columns based on number of nodes
 
@@ -108,7 +112,7 @@ for i, node in enumerate(nodes_data):
         """
         
         if st.button(button_label, key=node_id):
-            # Toggle visibility
+            # Toggle visibility for each node plot
             st.session_state.plot_visibility[node_id] = not st.session_state.plot_visibility[node_id]
 
         # Show plot if visibility is true
@@ -117,9 +121,12 @@ for i, node in enumerate(nodes_data):
 
 # Button to display the network graph
 if st.button("Show Network Graph"):
+    st.session_state.graph_visible = not st.session_state.graph_visible  # Toggle graph visibility
+
+# Show network graph if it is visible
+if st.session_state.graph_visible:
     plt.figure(figsize=(10, 5))
     pos = nx.spring_layout(G)  # positions for all nodes
     nx.draw(G, pos, with_labels=True, node_size=2000, node_color='lightblue', font_size=10, font_weight='bold', arrows=True)
     plt.title("Flowchart of Nodes")
     st.pyplot(plt)
-
