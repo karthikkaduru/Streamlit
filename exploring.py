@@ -60,7 +60,7 @@ def get_store_count(sql_query):
     location = sql_query.split("'")[1]  # Extract location from query
     return stores_df[stores_df['location'] == location].shape[0]
 
-# Function to create a random plot for sales
+# Function to create a fixed plot for sales
 def create_sales_plot(node_name):
     # Filter sales data for the specific location
     location_sales = stores_df[stores_df['location'] == node_name]
@@ -86,19 +86,32 @@ for node in nodes_data:
 for link in links_data:
     G.add_edge(link['source'], link['target'])
 
-# Display nodes with details
+# Store plot visibility state
+if 'plot_visibility' not in st.session_state:
+    st.session_state.plot_visibility = {node['id']: False for node in nodes_data}
+
+# Display nodes with details and toggle button for plots
 for node in nodes_data:
     node_id = node['id']
     node_name = node['node_name']
     attributes = node['attributes']
     store_count = get_store_count(attributes['sql_query'])
 
-    # Create a button with detailed information
-    button_label = f"{node_name}\nNode ID: {node_id}\nIncident: [{attributes['incident_number']}](https://www.example.com/{attributes['incident_number']})\nStores: {store_count}"
+    # Create a toggle button with detailed information
+    button_label = f"""
+    **{node_name}**
+    ---
+    **Node ID:** {node_id}  
+    **Incident:** [{attributes['incident_number']}](https://www.example.com/{attributes['incident_number']})  
+    **Stores:** {store_count}
+    """
     
-    # Create a button for each node
     if st.button(button_label, key=node_id):
-        # Generate and display sales plot
+        # Toggle visibility
+        st.session_state.plot_visibility[node_id] = not st.session_state.plot_visibility[node_id]
+
+    # Show plot if visibility is true
+    if st.session_state.plot_visibility[node_id]:
         create_sales_plot(node_name)
 
 # Button to display the network graph
