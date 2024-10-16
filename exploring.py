@@ -1,133 +1,190 @@
-import io
-import base64
-import matplotlib.pyplot as plt
+import streamlit as st
+
 import numpy as np
-import pandas as pd
-import json
-from datetime import datetime
+
+import matplotlib.pyplot as plt
+
 import networkx as nx
 
-# Sample JSON data with incident hyperlinks
-json_data = '''
-{
-    "nodes": [
-        {
-            "id": "1",
-            "node_name": "Location-1",
-            "attributes": {
-                "sql_query": "SELECT DISTINCT Location_no FROM dbdatascience.sf_fact_daily_combined_actual_sales_plan",
-                "days": 7,
-                "incident_number": "INC1234"
-            },
-            "linked_nodes": ["2"]
-        },
-        {
-            "id": "2",
-            "node_name": "Location-2",
-            "attributes": {
-                "sql_query": "SELECT DISTINCT Location_no FROM dbdatascience.sf_fact_daily_combined_actual_sales_plan",
-                "days": 10,
-                "incident_number": "INC5678"
-            },
-            "linked_nodes": ["1", "3"]
-        },
-        {
-            "id": "3",
-            "node_name": "Location-3",
-            "attributes": {
-                "sql_query": "SELECT DISTINCT Location_no FROM dbdatascience.sf_fact_daily_combined_actual_sales_plan",
-                "days": 15,
-                "incident_number": "INC9101"
-            },
-            "linked_nodes": ["1","2"]
+import json
+
+import pandas as pd
+ 
+# Sample JSON data for nodes and links
+
+nodes_json = '''
+
+[
+
+    {
+
+        "id": "1",
+
+        "node_name": "Location-1",
+
+        "attributes": {
+
+            "sql_query": "SELECT COUNT(*) FROM stores WHERE location = 'Location-1'",
+
+            "incident_number": "INC1234"
+
         }
-    ],
-    "links": [
-        {"source": "1", "target": "2"},
-        {"source": "2", "target": "3"}
-    ]
-}
-'''
 
-# Parse the JSON data
-data = json.loads(json_data)
+    },
 
-# Mock function to simulate data fetching based on SQL query
-def fetch_data(sql_query):
-    return pd.DataFrame({
-        'Location_no': np.random.randint(1000, 2000, size=10)  # Random location numbers
-    })
+    {
 
-# Function to calculate total stores from SQL query
-def calculate_total_stores(sql_query):
-    df = fetch_data(sql_query)
-    return df['Location_no'].nunique()  # Count distinct Location_no
+        "id": "2",
 
-# Create a NetworkX graph
-def create_network_graph(data):
-    G = nx.DiGraph()  # Use DiGraph for directed graph
-    
-    for node in data["nodes"]:
-        node_id = node["id"]
-        node_name = node["node_name"]
-        sql_query = node["attributes"]["sql_query"]
-        days = node["attributes"]["days"]
-        incident_number = node["attributes"]["incident_number"]
-        total_stores = calculate_total_stores(sql_query)
-        
-        # Adding node with attributes
-        G.add_node(node_id, name=node_name, total_stores=total_stores, days=days, 
-                   date=datetime.now().strftime("%Y-%m-%d"), incident_number=incident_number)
-        
-        # Adding links
-        for linked_node in node["linked_nodes"]:
-            G.add_edge(node_id, linked_node)
+        "node_name": "Location-2",
 
-    return G
+        "attributes": {
 
-# Function to draw the graph
-def draw_graph(G):
-    pos = nx.spring_layout(G)  # positions for all nodes
-    node_labels = {
-        node: f"{G.nodes[node]['name']}<br>Stores: {G.nodes[node]['total_stores']}<br>Date: {G.nodes[node]['date']}<br>Incident: <a href='https://www.example.com/{G.nodes[node]['incident_number']}'>{G.nodes[node]['incident_number']}</a>"
-        for node in G.nodes()
+            "sql_query": "SELECT COUNT(*) FROM stores WHERE location = 'Location-2'",
+
+            "incident_number": "INC5678"
+
+        }
+
+    },
+
+    {
+
+        "id": "3",
+
+        "node_name": "Location-3",
+
+        "attributes": {
+
+            "sql_query": "SELECT COUNT(*) FROM stores WHERE location = 'Location-3'",
+
+            "incident_number": "INC9101"
+
+        }
+
     }
 
-    plt.figure(figsize=(12, 8))
-    
-    # Increase node size
-    node_sizes = [10000] * len(G.nodes())  # Set all nodes to a larger size
-    nx.draw(G, pos, with_labels=False, node_size=node_sizes, node_color='lightblue', arrows=True)
+]
 
-    # Draw labels inside the nodes
-    for node in G.nodes():
-        x, y = pos[node]
-        plt.text(x, y, node_labels[node], fontsize=10, ha='center', va='center', bbox=dict(facecolor='white', alpha=0.5))
+'''
+ 
+links_json = '''
 
-    plt.title('Network Graph of Nodes')
-    
-    buffer = io.BytesIO()
-    plt.savefig(buffer, format='png')
-    plt.close()
-    buffer.seek(0)
-    return base64.b64encode(buffer.read()).decode('utf-8')
+[
 
-# Create the network graph
-G = create_network_graph(data)
+    {"source": "1", "target": "2"},
 
-# Generate the plot
-base64_image = draw_graph(G)
+    {"source": "2", "target": "3"},
 
-# HTML to display the graph
-html_content = f"""
-<div style="text-align: center;">
-    <h2>Network Graph of Nodes</h2>
-    <img src="data:image/png;base64,{base64_image}" style="width: 80%; max-width: 600px;">
-</div>
-"""
+    {"source": "3", "target": "1"}
 
-# Display the HTML content
-# Note: Replace the following with your preferred method of rendering HTML.
-# In Jupyter Notebook, you might use display(HTML(html_content)), for example.
-# displayHTML(html_content)
-print(html_content)  # Change this line as needed in your environment
+]
+
+'''
+ 
+# Parse JSON data
+
+nodes_data = json.loads(nodes_json)
+
+links_data = json.loads(links_json)
+ 
+# Sample data to simulate a database
+
+data = {
+
+    'location': ['Location-1', 'Location-1', 'Location-2', 'Location-3', 'Location-3', 'Location-3'],
+
+    'store_name': ['Store A', 'Store B', 'Store C', 'Store D', 'Store E', 'Store F']
+
+}
+
+stores_df = pd.DataFrame(data)
+ 
+# Function to get the count of stores based on the SQL query
+
+def get_store_count(sql_query):
+
+    location = sql_query.split("'")[1]  # Extract location from query
+
+    return stores_df[stores_df['location'] == location].shape[0]
+ 
+# Function to create a random plot
+
+def create_random_plot(node_name):
+
+    x = np.linspace(0, 10, 100)
+
+    y = np.random.rand(100) * 10  # Random data
+
+    plt.figure()
+
+    plt.plot(x, y, label=f"Random Data for {node_name}")
+
+    plt.title(f"Random Plot for {node_name}")
+
+    plt.xlabel("X-axis")
+
+    plt.ylabel("Y-axis")
+
+    plt.legend()
+
+    st.pyplot(plt)
+ 
+# Streamlit App
+
+st.title("Node Visualization Flowchart")
+ 
+# Create a network graph
+
+G = nx.DiGraph()
+ 
+# Add nodes and edges to the graph
+
+for node in nodes_data:
+
+    node_id = node['id']
+
+    G.add_node(node_id, name=node['node_name'], incident_number=node['attributes']['incident_number'])
+ 
+for link in links_data:
+
+    G.add_edge(link['source'], link['target'])
+ 
+# Display nodes with details
+
+for node in nodes_data:
+
+    node_id = node['id']
+
+    node_name = node['node_name']
+
+    attributes = node['attributes']
+
+    store_count = get_store_count(attributes['sql_query'])
+ 
+    # Create a button for each node
+
+    if st.button(node_name):
+
+        st.write(f"**Node ID:** {node_id}")
+
+        st.write(f"**Incident Number:** [{attributes['incident_number']}](https://www.example.com/{attributes['incident_number']})")
+
+        st.write(f"**Number of Stores:** {store_count}")
+
+        # Display the random plot
+
+        create_random_plot(node_name)
+ 
+# Draw the graph to show links
+
+plt.figure(figsize=(10, 5))
+
+pos = nx.spring_layout(G)  # positions for all nodes
+
+nx.draw(G, pos, with_labels=True, node_size=2000, node_color='lightblue', font_size=10, font_weight='bold', arrows=True)
+
+plt.title("Flowchart of Nodes")
+
+st.pyplot(plt)
+ 
