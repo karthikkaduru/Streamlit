@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
+import networkx as nx
 import json
 import pandas as pd
 
@@ -71,29 +72,38 @@ def create_random_plot(node_name):
     st.pyplot(plt)
 
 # Streamlit App
-st.title("Node Visualization App")
+st.title("Node Visualization Flowchart")
 
-# Create a dictionary for links for easier access
-link_dict = {link['source']: link['target'] for link in links_data}
+# Create a network graph
+G = nx.DiGraph()
+
+# Add nodes and edges to the graph
+for node in nodes_data:
+    node_id = node['id']
+    G.add_node(node_id, name=node['node_name'], incident_number=node['attributes']['incident_number'])
+
+for link in links_data:
+    G.add_edge(link['source'], link['target'])
 
 # Display nodes with details
 for node in nodes_data:
     node_id = node['id']
     node_name = node['node_name']
     attributes = node['attributes']
-    incident_number = attributes['incident_number']
     store_count = get_store_count(attributes['sql_query'])
 
     # Create a button for each node
     if st.button(node_name):
         st.write(f"**Node ID:** {node_id}")
-        st.write(f"**Incident Number:** [{incident_number}](https://www.example.com/{incident_number})")
+        st.write(f"**Incident Number:** [{attributes['incident_number']}](https://www.example.com/{attributes['incident_number']})")
         st.write(f"**Number of Stores:** {store_count}")
         
         # Display the random plot
         create_random_plot(node_name)
 
-# Display links between nodes
-st.subheader("Node Connections")
-for link in links_data:
-    st.write(f"{link['source']} --> {link['target']}")
+# Draw the graph to show links
+plt.figure(figsize=(10, 5))
+pos = nx.spring_layout(G)  # positions for all nodes
+nx.draw(G, pos, with_labels=True, node_size=2000, node_color='lightblue', font_size=10, font_weight='bold', arrows=True)
+plt.title("Flowchart of Nodes")
+st.pyplot(plt)
