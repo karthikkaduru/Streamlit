@@ -86,13 +86,8 @@ for node in nodes_data:
 for link in links_data:
     G.add_edge(link['source'], link['target'])
 
-# Initialize session state for graph visibility
-if 'show_graph' not in st.session_state:
-    st.session_state.show_graph = False
-    st.session_state.current_node = None
-
-# Display nodes with details and visual links
-for idx, node in enumerate(nodes_data):
+# Display nodes with details
+for node in nodes_data:
     node_id = node['id']
     node_name = node['node_name']
     attributes = node['attributes']
@@ -103,17 +98,11 @@ for idx, node in enumerate(nodes_data):
     
     # Create a button for each node
     if st.button(button_label, key=node_id):
-        st.session_state.current_node = node_id  # Set current node for plot generation
-
         # Generate and display sales plot
         create_sales_plot(node_name)
 
 # Button to display the network graph
 if st.button("Show Network Graph"):
-    st.session_state.show_graph = True
-
-# Draw the graph to show links
-if st.session_state.show_graph:
     plt.figure(figsize=(10, 5))
     pos = nx.spring_layout(G)  # positions for all nodes
     nx.draw(G, pos, with_labels=True, node_size=2000, node_color='lightblue', font_size=10, font_weight='bold', arrows=True)
