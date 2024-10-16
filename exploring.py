@@ -90,8 +90,8 @@ if 'show_graph' not in st.session_state:
     st.session_state.show_graph = False
     st.session_state.current_node = None
 
-# Display nodes with details
-for node in nodes_data:
+# Display nodes with details and visual links
+for idx, node in enumerate(nodes_data):
     node_id = node['id']
     node_name = node['node_name']
     attributes = node['attributes']
@@ -109,6 +109,10 @@ for node in nodes_data:
         else:
             st.session_state.show_graph = True
             st.session_state.current_node = node_id
+
+    # Draw connecting lines if applicable
+    if idx < len(nodes_data) - 1:  # Connect current node to the next node
+        st.markdown("<hr style='border: 1px dashed blue;'>", unsafe_allow_html=True)
 
 # Draw the graph to show links
 if st.session_state.show_graph and st.session_state.current_node:
