@@ -99,11 +99,11 @@ for node in nodes_data:
 
     # Create a toggle button with detailed information
     button_label = f"""
-    **{node_name}**
+    {node_name}
     ---
-    **Node ID:** {node_id}  
-    **Incident:** [{attributes['incident_number']}](https://www.example.com/{attributes['incident_number']})  
-    **Stores:** {store_count}
+    Node ID:{node_id}  
+    Incident: [{attributes['incident_number']}] 
+    Stores: {store_count}
     """
     
     if st.button(button_label, key=node_id):
