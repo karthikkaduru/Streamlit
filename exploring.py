@@ -90,16 +90,17 @@ if 'show_graph' not in st.session_state:
     st.session_state.show_graph = False
     st.session_state.current_node = None
 
-# Display nodes with details on the buttons
+# Display nodes with details
 for node in nodes_data:
     node_id = node['id']
     node_name = node['node_name']
     attributes = node['attributes']
     store_count = get_store_count(attributes['sql_query'])
 
-    # Button with node details
-    button_label = f"{node_name}\n**Node ID:** {node_id}\n**Incident Number:** [{attributes['incident_number']}](https://www.example.com/{attributes['incident_number']})\n**Number of Stores:** {store_count}"
+    # Create a button with detailed information
+    button_label = f"{node_name}\nNode ID: {node_id}\nIncident: [{attributes['incident_number']}](https://www.example.com/{attributes['incident_number']})\nStores: {store_count}"
     
+    # Create a button for each node
     if st.button(button_label, key=node_id):
         # Toggle graph visibility
         if st.session_state.current_node == node_id:
