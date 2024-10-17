@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import json
 from pyvis.network import Network
+import matplotlib.pyplot as plt
 
 # Sample JSON data for nodes and links
 nodes_json = '''
@@ -89,8 +90,10 @@ HtmlFile = open("network.html", 'r', encoding='utf-8')
 source_code = HtmlFile.read() 
 st.components.v1.html(source_code, height=600)
 
-# Placeholder to display selected node details
-selected_node = st.empty()
+# Create a container for node details
+with st.container():
+    st.markdown("### Node Details")
+    details_box = st.empty()  # Placeholder for details
 
 # JavaScript to handle node clicks
 st.markdown("""
@@ -126,11 +129,10 @@ if st.session_state.get('node_id'):
 
         incident_number_link = f"[{attributes['incident_number']}](#)"  # Create hyperlink for incident number
 
-        selected_node.markdown(f"### Node Details\n")
-        selected_node.markdown(f"**Node Name:** {node_name}")
-        selected_node.markdown(f"**Node ID:** {node_id}")
-        selected_node.markdown(f"**Incident Number:** {incident_number_link}")
-        selected_node.markdown(f"**Stores Count:** {store_count}")
+        details_box.markdown(f"**Node Name:** {node_name}")
+        details_box.markdown(f"**Node ID:** {node_id}")
+        details_box.markdown(f"**Incident Number:** {incident_number_link}")
+        details_box.markdown(f"**Stores Count:** {store_count}")
 
         # Display the sales plot for the clicked node
         create_sales_plot(node_name)
