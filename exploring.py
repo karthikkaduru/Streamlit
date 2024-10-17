@@ -91,9 +91,7 @@ source_code = HtmlFile.read()
 st.components.v1.html(source_code, height=600)
 
 # Create a container for node details
-with st.container():
-    st.markdown("### Node Details")
-    details_box = st.empty()  # Placeholder for details
+details_box = st.empty()  # Placeholder for details
 
 # JavaScript to handle node clicks
 st.markdown("""
@@ -127,8 +125,11 @@ if st.session_state.get('node_id'):
         attributes = node_data['attributes']
         store_count = get_store_count(attributes['sql_query'])
 
-        incident_number_link = f"[{attributes['incident_number']}](#)"  # Create hyperlink for incident number
+        # Create a random link for the incident number
+        incident_number_link = f"[{attributes['incident_number']}](https://example.com/{attributes['incident_number']})"
 
+        # Display node details
+        details_box.markdown(f"### Node Details")
         details_box.markdown(f"**Node Name:** {node_name}")
         details_box.markdown(f"**Node ID:** {node_id}")
         details_box.markdown(f"**Incident Number:** {incident_number_link}")
