@@ -1,42 +1,66 @@
 import streamlit as st
 import numpy as np
-import pandas as pd
+import matplotlib.pyplot as plt
+import networkx as nx
 import json
-from pyvis.network import Network
+import pandas as pd
 
-# Sample JSON data for nodes
+# Sample JSON data for nodes and links
 nodes_json = '''
 [
-    {"id": "1", "node_name": "Location-1", "attributes": {"sql_query": "SELECT COUNT(*) FROM stores WHERE location = 'Location-1'", "incident_number": "INC1234"}},
-    {"id": "2", "node_name": "Location-2", "attributes": {"sql_query": "SELECT COUNT(*) FROM stores WHERE location = 'Location-2'", "incident_number": "INC5678"}},
-    {"id": "3", "node_name": "Location-3", "attributes": {"sql_query": "SELECT COUNT(*) FROM stores WHERE location = 'Location-3'", "incident_number": "INC9101"}}
+    {
+        "id": "1",
+        "node_name": "Location-1",
+        "attributes": {
+            "sql_query": "SELECT COUNT(*) FROM stores WHERE location = 'Location-1'",
+            "incident_number": "INC1234"
+        }
+    },
+    {
+        "id": "2",
+        "node_name": "Location-2",
+        "attributes": {
+            "sql_query": "SELECT COUNT(*) FROM stores WHERE location = 'Location-2'",
+            "incident_number": "INC5678"
+        }
+    },
+    {
+        "id": "3",
+        "node_name": "Location-3",
+        "attributes": {
+            "sql_query": "SELECT COUNT(*) FROM stores WHERE location = 'Location-3'",
+            "incident_number": "INC9101"
+        }
+    }
 ]
 '''
 
-# Define links as a simple text string
-links_string = "1 >> 2 >> 3"
+links_json = '''
+[
+    {"source": "1", "target": "2"},
+    {"source": "2", "target": "3"},
+    {"source": "3", "target": "1"}
+]
+'''
 
-# Parse nodes data
+# Parse JSON data
 nodes_data = json.loads(nodes_json)
-
-# Parse links from the string
-links_data = []
-nodes = links_string.split(" >> ")
-for i in range(len(nodes) - 1):
-    links_data.append({"source": nodes[i], "target": nodes[i + 1]})
+links_data = json.loads(links_json)
 
 # Sample data to simulate a database
 data = {
     'location': ['Location-1', 'Location-1', 'Location-2', 'Location-3', 'Location-3', 'Location-3'],
     'store_name': ['Store A', 'Store B', 'Store C', 'Store D', 'Store E', 'Store F'],
-    'sales': np.random.randint(100, 500, size=6)
+    'sales': np.random.randint(100, 500, size=6)  # Random sales data
 }
 stores_df = pd.DataFrame(data)
 
+# Function to get the count of stores based on the SQL query
 def get_store_count(sql_query):
-    location = sql_query.split("'")[1]
+    location = sql_query.split("'")[1]  # Extract location from query
     return stores_df[stores_df['location'] == location].shape[0]
 
+# Function to create a fixed plot for sales
 def create_sales_plot(node_name):
     location_sales = stores_df[stores_df['location'] == node_name]
     plt.figure()
@@ -50,61 +74,55 @@ def create_sales_plot(node_name):
 # Streamlit App
 st.title("Node Visualization Flowchart")
 
-# Store the selected node data
-selected_node = st.empty()  # Placeholder for displaying selected node data
+# Create a network graph
+G = nx.DiGraph()
 
-# Interactive Network Graph using Pyvis
-if st.button("Show Interactive Network Graph"):
-    net = Network(height='600px', width='100%', notebook=True)
+# Add nodes and edges to the graph
+for node in nodes_data:
+    node_id = node['id']
+    G.add_node(node_id, name=node['node_name'], incident_number=node['attributes']['incident_number'])
 
-    # Add nodes
+for link in links_data:
+    G.add_edge(link['source'], link['target'])
+
+# Store selected node details
+selected_node_id = st.session_state.get('selected_node', None)
+
+# Button to display the network graph
+if st.button("Show Network Graph"):
+    st.session_state.graph_visible = True
+
+# Show network graph if it is visible
+if st.session_state.get('graph_visible', False):
+    plt.figure(figsize=(10, 5))
+    pos = nx.spring_layout(G)  # positions for all nodes
+    nx.draw(G, pos, with_labels=True, node_size=2000, node_color='lightblue', font_size=10, font_weight='bold', arrows=True)
+    plt.title("Flowchart of Nodes")
+    st.pyplot(plt)
+
+    # Display selected node details
     for node in nodes_data:
-        net.add_node(node['id'], label=node['node_name'], title=f"Incident: {node['attributes']['incident_number']}")
-    
-    # Add edges from the parsed links
-    for link in links_data:
-        net.add_edge(link['source'], link['target'], label=f"{link['source']} >> {link['target']}", title=f"From {link['source']} to {link['target']}")
-    
-    # Save and display the network graph
-    net.show("network.html")
-    HtmlFile = open("network.html", 'r', encoding='utf-8')
-    source_code = HtmlFile.read() 
-    st.components.v1.html(source_code, height=600)
+        node_id = node['id']
+        if st.button(f"Select {node['node_name']}"):
+            st.session_state.selected_node = node_id
+            selected_node_id = node_id
 
-# JavaScript to handle node clicks
-st.markdown("""
-<script>
-    function getNodeId(event) {
-        const nodes = event.nodes; // Get the clicked node id
-        if (nodes.length) {
-            // Send the node id to the Streamlit app
-            const nodeId = nodes[0];
-            const message = { nodeId: nodeId };
-            window.parent.postMessage(message, '*');
-        }
-    }
+# Display details of the selected node
+if selected_node_id:
+    selected_node = next((node for node in nodes_data if node['id'] == selected_node_id), None)
 
-    // Listen for click events on the network graph
-    document.addEventListener("DOMContentLoaded", function() {
-        const network = document.getElementById("mynetwork");
-        if (network) {
-            network.on("click", getNodeId);
-        }
-    });
-</script>
-""", unsafe_allow_html=True)
-
-# Handle node click messages from JavaScript
-if st.session_state.get('node_id'):
-    node_id = st.session_state.node_id
-    node_data = next((node for node in nodes_data if node['id'] == node_id), None)
-
-    if node_data:
-        node_name = node_data['node_name']
-        attributes = node_data['attributes']
+    if selected_node:
+        node_name = selected_node['node_name']
+        attributes = selected_node['attributes']
         store_count = get_store_count(attributes['sql_query'])
+        
+        incident_number_link = f"[{attributes['incident_number']}](#)"  # Create hyperlink for incident number
 
-        selected_node.markdown(f"### {node_name}\n\n**Node ID:** {node_id}\n**Incident:** [{attributes['incident_number']}]\n**Stores:** {store_count}")
+        st.markdown(f"### Node Details\n")
+        st.markdown(f"**Node Name:** {node_name}")
+        st.markdown(f"**Node ID:** {selected_node_id}")
+        st.markdown(f"**Incident Number:** {incident_number_link}")
+        st.markdown(f"**Stores Count:** {store_count}")
 
-        # Display the sales plot for the clicked node
+        # Display the sales plot for the selected node
         create_sales_plot(node_name)
