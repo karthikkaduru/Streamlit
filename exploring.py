@@ -1,9 +1,8 @@
 import streamlit as st
 import numpy as np
-import matplotlib.pyplot as plt
-import networkx as nx
-import json
 import pandas as pd
+import json
+from pyvis.network import Network
 
 # Sample JSON data for nodes and links
 nodes_json = '''
@@ -74,55 +73,64 @@ def create_sales_plot(node_name):
 # Streamlit App
 st.title("Node Visualization Flowchart")
 
-# Create a network graph
-G = nx.DiGraph()
+# Interactive Network Graph using Pyvis
+net = Network(height='600px', width='100%', notebook=True)
 
-# Add nodes and edges to the graph
+# Add nodes and edges
 for node in nodes_data:
-    node_id = node['id']
-    G.add_node(node_id, name=node['node_name'], incident_number=node['attributes']['incident_number'])
+    net.add_node(node['id'], label=node['node_name'], title=f"Incident: {node['attributes']['incident_number']}", color='lightblue')
 
 for link in links_data:
-    G.add_edge(link['source'], link['target'])
+    net.add_edge(link['source'], link['target'])
 
-# Store selected node details
-selected_node_id = st.session_state.get('selected_node', None)
+# Save and display the network graph
+net.show("network.html")
+HtmlFile = open("network.html", 'r', encoding='utf-8')
+source_code = HtmlFile.read() 
+st.components.v1.html(source_code, height=600)
 
-# Button to display the network graph
-if st.button("Show Network Graph"):
-    st.session_state.graph_visible = True
+# Placeholder to display selected node details
+selected_node = st.empty()
 
-# Show network graph if it is visible
-if st.session_state.get('graph_visible', False):
-    plt.figure(figsize=(10, 5))
-    pos = nx.spring_layout(G)  # positions for all nodes
-    nx.draw(G, pos, with_labels=True, node_size=2000, node_color='lightblue', font_size=10, font_weight='bold', arrows=True)
-    plt.title("Flowchart of Nodes")
-    st.pyplot(plt)
+# JavaScript to handle node clicks
+st.markdown("""
+<script>
+    function getNodeId(event) {
+        const nodes = event.nodes; // Get the clicked node id
+        if (nodes.length) {
+            const nodeId = nodes[0];
+            const message = { nodeId: nodeId };
+            window.parent.postMessage(message, '*');
+        }
+    }
 
-    # Display selected node details
-    for node in nodes_data:
-        node_id = node['id']
-        if st.button(f"Select {node['node_name']}"):
-            st.session_state.selected_node = node_id
-            selected_node_id = node_id
+    // Listen for click events on the network graph
+    document.addEventListener("DOMContentLoaded", function() {
+        const network = document.getElementById("mynetwork");
+        if (network) {
+            network.on("click", getNodeId);
+        }
+    });
+</script>
+""", unsafe_allow_html=True)
 
-# Display details of the selected node
-if selected_node_id:
-    selected_node = next((node for node in nodes_data if node['id'] == selected_node_id), None)
+# Handle node click messages from JavaScript
+if st.session_state.get('node_id'):
+    node_id = st.session_state.node_id
+    node_data = next((node for node in nodes_data if node['id'] == node_id), None)
 
-    if selected_node:
-        node_name = selected_node['node_name']
-        attributes = selected_node['attributes']
+    if node_data:
+        node_name = node_data['node_name']
+        attributes = node_data['attributes']
         store_count = get_store_count(attributes['sql_query'])
-        
+
         incident_number_link = f"[{attributes['incident_number']}](#)"  # Create hyperlink for incident number
 
-        st.markdown(f"### Node Details\n")
-        st.markdown(f"**Node Name:** {node_name}")
-        st.markdown(f"**Node ID:** {selected_node_id}")
-        st.markdown(f"**Incident Number:** {incident_number_link}")
-        st.markdown(f"**Stores Count:** {store_count}")
+        selected_node.markdown(f"### Node Details\n")
+        selected_node.markdown(f"**Node Name:** {node_name}")
+        selected_node.markdown(f"**Node ID:** {node_id}")
+        selected_node.markdown(f"**Incident Number:** {incident_number_link}")
+        selected_node.markdown(f"**Stores Count:** {store_count}")
 
-        # Display the sales plot for the selected node
+        # Display the sales plot for the clicked node
         create_sales_plot(node_name)
