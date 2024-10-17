@@ -4,7 +4,7 @@ import pandas as pd
 import json
 from pyvis.network import Network
 
-# Sample JSON data for nodes (same as before)
+# Sample JSON data for nodes
 nodes_json = '''
 [
     {"id": "1", "node_name": "Location-1", "attributes": {"sql_query": "SELECT COUNT(*) FROM stores WHERE location = 'Location-1'", "incident_number": "INC1234"}},
@@ -50,33 +50,8 @@ def create_sales_plot(node_name):
 # Streamlit App
 st.title("Node Visualization Flowchart")
 
-# Store plot visibility state
-if 'plot_visibility' not in st.session_state:
-    st.session_state.plot_visibility = {node['id']: False for node in nodes_data}
-
-# Display nodes with details and toggle button for plots
-cols = st.columns(len(nodes_data))
-
-for i, node in enumerate(nodes_data):
-    node_id = node['id']
-    node_name = node['node_name']
-    attributes = node['attributes']
-    store_count = get_store_count(attributes['sql_query'])
-
-    with cols[i]:
-        button_label = f"""
-        {node_name}
-        ---
-        Node ID: {node_id}  
-        Incident: [{attributes['incident_number']}] 
-        Stores: {store_count}
-        """
-        
-        if st.button(button_label, key=node_id):
-            st.session_state.plot_visibility[node_id] = not st.session_state.plot_visibility[node_id]
-
-        if st.session_state.plot_visibility[node_id]:
-            create_sales_plot(node_name)
+# Store the selected node data
+selected_node = st.empty()  # Placeholder for displaying selected node data
 
 # Interactive Network Graph using Pyvis
 if st.button("Show Interactive Network Graph"):
@@ -90,8 +65,46 @@ if st.button("Show Interactive Network Graph"):
     for link in links_data:
         net.add_edge(link['source'], link['target'], label=f"{link['source']} >> {link['target']}", title=f"From {link['source']} to {link['target']}")
     
-    # Show the network graph
+    # Save and display the network graph
     net.show("network.html")
     HtmlFile = open("network.html", 'r', encoding='utf-8')
     source_code = HtmlFile.read() 
     st.components.v1.html(source_code, height=600)
+
+# JavaScript to handle node clicks
+st.markdown("""
+<script>
+    function getNodeId(event) {
+        const nodes = event.nodes; // Get the clicked node id
+        if (nodes.length) {
+            // Send the node id to the Streamlit app
+            const nodeId = nodes[0];
+            const message = { nodeId: nodeId };
+            window.parent.postMessage(message, '*');
+        }
+    }
+
+    // Listen for click events on the network graph
+    document.addEventListener("DOMContentLoaded", function() {
+        const network = document.getElementById("mynetwork");
+        if (network) {
+            network.on("click", getNodeId);
+        }
+    });
+</script>
+""", unsafe_allow_html=True)
+
+# Handle node click messages from JavaScript
+if st.session_state.get('node_id'):
+    node_id = st.session_state.node_id
+    node_data = next((node for node in nodes_data if node['id'] == node_id), None)
+
+    if node_data:
+        node_name = node_data['node_name']
+        attributes = node_data['attributes']
+        store_count = get_store_count(attributes['sql_query'])
+
+        selected_node.markdown(f"### {node_name}\n\n**Node ID:** {node_id}\n**Incident:** [{attributes['incident_number']}]\n**Stores:** {store_count}")
+
+        # Display the sales plot for the clicked node
+        create_sales_plot(node_name)
