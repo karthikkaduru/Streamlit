@@ -100,8 +100,8 @@ st.markdown("""
         const nodes = event.nodes; // Get the clicked node id
         if (nodes.length) {
             const nodeId = nodes[0];
-            const message = { nodeId: nodeId };
-            window.parent.postMessage(message, '*');
+            // Send the clicked node ID back to Streamlit
+            window.parent.postMessage({node_id: nodeId}, '*');
         }
     }
 
@@ -116,24 +116,35 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Handle node click messages from JavaScript
-if st.session_state.get('node_id'):
-    node_id = st.session_state.node_id
-    node_data = next((node for node in nodes_data if node['id'] == node_id), None)
+def handle_node_click():
+    if "node_id" in st.session_state:
+        node_id = st.session_state.node_id
+        node_data = next((node for node in nodes_data if node['id'] == node_id), None)
 
-    if node_data:
-        node_name = node_data['node_name']
-        attributes = node_data['attributes']
-        store_count = get_store_count(attributes['sql_query'])
+        if node_data:
+            node_name = node_data['node_name']
+            attributes = node_data['attributes']
+            store_count = get_store_count(attributes['sql_query'])
 
-        # Create a random link for the incident number
-        incident_number_link = f"[{attributes['incident_number']}](https://example.com/{attributes['incident_number']})"
+            # Create a random link for the incident number
+            incident_number_link = f"[{attributes['incident_number']}](https://example.com/{attributes['incident_number']})"
 
-        # Display node details
-        details_box.markdown(f"### Node Details")
-        details_box.markdown(f"**Node Name:** {node_name}")
-        details_box.markdown(f"**Node ID:** {node_id}")
-        details_box.markdown(f"**Incident Number:** {incident_number_link}")
-        details_box.markdown(f"**Stores Count:** {store_count}")
+            # Display node details
+            details_box.markdown(f"### Node Details")
+            details_box.markdown(f"**Node Name:** {node_name}")
+            details_box.markdown(f"**Node ID:** {node_id}")
+            details_box.markdown(f"**Incident Number:** {incident_number_link}")
+            details_box.markdown(f"**Stores Count:** {store_count}")
 
-        # Display the sales plot for the clicked node
-        create_sales_plot(node_name)
+            # Display the sales plot for the clicked node
+            create_sales_plot(node_name)
+
+# Handle incoming messages from JavaScript
+st.session_state.node_id = None  # Initialize the session state variable
+
+if st.session_state.node_id is None:
+    # Listen for messages from JavaScript
+    st.experimental_rerun()
+
+# Call the function to handle node clicks
+handle_node_click()
