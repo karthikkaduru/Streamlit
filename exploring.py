@@ -89,6 +89,10 @@ st.components.v1.html(source_code, height=600)
 # Create a container for node details
 details_box = st.empty()  # Placeholder for details
 
+# Hidden input to store selected node ID
+if "selected_node_id" not in st.session_state:
+    st.session_state.selected_node_id = None
+
 # Function to display node details
 def display_node_details(node_id):
     node_data = next((node for node in nodes_data if node['id'] == node_id), None)
@@ -111,9 +115,46 @@ def display_node_details(node_id):
         # Display the sales plot for the clicked node
         create_sales_plot(node_name)
 
-# Select box to choose a node
-node_ids = [node['id'] for node in nodes_data]
-selected_node_id = st.selectbox("Select a node to view details", node_ids)
+# JavaScript to handle node clicks
+st.markdown("""
+<script>
+    function getNodeId(event) {
+        const nodes = event.nodes; // Get the clicked node id
+        if (nodes.length) {
+            const nodeId = nodes[0];
+            // Send the clicked node ID back to Streamlit
+            window.parent.postMessage({node_id: nodeId}, '*');
+        }
+    }
 
-if selected_node_id:
-    display_node_details(selected_node_id)
+    // Listen for click events on the network graph
+    document.addEventListener("DOMContentLoaded", function() {
+        const network = document.getElementById("mynetwork");
+        if (network) {
+            network.on("click", getNodeId);
+        }
+    });
+</script>
+""", unsafe_allow_html=True)
+
+# Handle incoming messages from JavaScript
+if "node_id" in st.session_state:
+    node_id = st.session_state.node_id
+    display_node_details(node_id)
+
+# Listen for messages from JavaScript
+def callback_node_click():
+    # Get the node_id from the incoming message
+    if st.session_state.selected_node_id is not None:
+        display_node_details(st.session_state.selected_node_id)
+
+# Check for node clicks and update session state
+def update_node_id():
+    # JavaScript sends messages with the node ID
+    if st.session_state.selected_node_id is None:
+        # Listen for messages from JavaScript
+        st.session_state.selected_node_id = st.experimental_get_query_params().get('node_id', [None])[0]
+    
+    callback_node_click()
+
+update_node_id()
