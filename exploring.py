@@ -67,34 +67,21 @@ st.title("Node Visualization Flowchart")
 # Create a container for node details
 details_box = st.empty()
 
-# Define buttons and store selected node
-selected_node = None
-
-# Create a layout for buttons
+# Create buttons for nodes
 col1, col2, col3 = st.columns(3)
 
+# Store selected node
+selected_node = None
+
 with col1:
-    if st.button("Location-1", key="Location-1"):
+    if st.button("Location-1"):
         selected_node = "Location-1"
 with col2:
-    if st.button("Location-2", key="Location-2"):
+    if st.button("Location-2"):
         selected_node = "Location-2"
 with col3:
-    if st.button("Location-3", key="Location-3"):
+    if st.button("Location-3"):
         selected_node = "Location-3"
-
-# Draw visual lines between buttons
-st.markdown("""
-    <style>
-    .line {
-        position: relative;
-        height: 2px;
-        background-color: black;
-        z-index: -1;
-    }
-    </style>
-    <div class="line" style="width: 40%; margin: 0 auto; top: 70px;"></div>
-""", unsafe_allow_html=True)
 
 # Show details for the selected node
 if selected_node:
@@ -112,3 +99,19 @@ if selected_node:
 
     # Display the sales plot for the clicked node
     create_sales_plot(node_data['node_name'])
+
+# Draw connections between buttons using Markdown
+st.markdown(
+    """
+    <style>
+    .line {
+        height: 2px;
+        background-color: black;
+        position: relative;
+        top: -30px;
+        z-index: -1;
+    }
+    </style>
+    <div class="line" style="width: 60%; margin: 0 auto;"></div>
+    """, unsafe_allow_html=True
+)
