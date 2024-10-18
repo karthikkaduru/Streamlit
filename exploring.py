@@ -99,16 +99,13 @@ st.markdown("""
 </script>
 """, unsafe_allow_html=True)
 
-# Handle incoming messages from JavaScript
+# Handling node click updates
 if "node_id" not in st.session_state:
     st.session_state.node_id = None
 
-# Listen for messages from JavaScript
-def callback_node_click():
-    if st.session_state.node_id is not None:
-        node_id = st.session_state.node_id
-        node_data = next((node for node in nodes_data if node['id'] == node_id), None)
-
+def update_node_details():
+    if st.session_state.node_id:
+        node_data = next((node for node in nodes_data if node['id'] == st.session_state.node_id), None)
         if node_data:
             node_name = node_data['node_name']
             attributes = node_data['attributes']
@@ -118,24 +115,17 @@ def callback_node_click():
             # Display node details
             details_box.markdown(f"### Node Details")
             details_box.markdown(f"**Node Name:** {node_name}")
-            details_box.markdown(f"**Node ID:** {node_id}")
+            details_box.markdown(f"**Node ID:** {st.session_state.node_id}")
             details_box.markdown(f"**Incident Number:** {incident_number_link}")
             details_box.markdown(f"**Stores Count:** {store_count}")
 
             # Display the sales plot for the clicked node
             create_sales_plot(node_name)
 
-# Update node_id from messages
-def update_node_id():
-    import json
-    from streamlit.server.server import Server
-
-    server = Server.get_current()
-    if server:
-        messages = server.get_messages()
-        for message in messages:
-            if "node_id" in message:
-                st.session_state.node_id = message["node_id"]
-
-update_node_id()
-callback_node_click()
+# Check if a node has been clicked
+def handle_node_click():
+    if st.session_state.node_id is not None:
+        update_node_details()
+        
+# Call to handle clicks
+handle_node_click()
