@@ -5,7 +5,7 @@ import json
 from pyvis.network import Network
 import matplotlib.pyplot as plt
 
-# Sample JSON data for nodes
+# Sample JSON data for nodes and links
 nodes_json = '''
 [
     {
@@ -35,11 +35,17 @@ nodes_json = '''
 ]
 '''
 
-# Define links as a simple string
-links_string = "1>>2>>3"
+links_json = '''
+[
+    {"source": "1", "target": "2"},
+    {"source": "2", "target": "3"},
+    {"source": "3", "target": "1"}
+]
+'''
 
 # Parse JSON data
 nodes_data = json.loads(nodes_json)
+links_data = json.loads(links_json)
 
 # Sample data to simulate a database
 data = {
@@ -68,16 +74,15 @@ def create_sales_plot(node_name):
 # Streamlit App
 st.title("Node Visualization Flowchart")
 
-# Create the network graph
+# Interactive Network Graph using Pyvis
 net = Network(height='600px', width='100%', notebook=True)
 
-# Add nodes
+# Add nodes and edges
 for node in nodes_data:
     net.add_node(node['id'], label=node['node_name'], title=f"Incident: {node['attributes']['incident_number']}", color='lightblue')
 
-# Add edges from the simple links string
-for link in links_string.split('>>'):
-    net.add_edge(link, link)  # Adjust this as necessary for your logic
+for link in links_data:
+    net.add_edge(link['source'], link['target'])
 
 # Save and display the network graph
 net.show("network.html")
@@ -110,43 +115,41 @@ st.markdown("""
 </script>
 """, unsafe_allow_html=True)
 
-# Initialize session state for node details
+# Handle incoming messages from JavaScript
 if "node_id" not in st.session_state:
     st.session_state.node_id = None
 
-# Function to display node details based on node ID
-def display_node_details(node_id):
-    node_data = next((node for node in nodes_data if node['id'] == node_id), None)
+# Listen for messages from JavaScript
+def callback_node_click():
+    if st.session_state.node_id is not None:
+        node_id = st.session_state.node_id
+        node_data = next((node for node in nodes_data if node['id'] == node_id), None)
 
-    if node_data:
-        node_name = node_data['node_name']
-        attributes = node_data['attributes']
-        store_count = get_store_count(attributes['sql_query'])
-        
-        # Create a random link for the incident number
-        incident_number_link = f"[{attributes['incident_number']}](https://example.com/{attributes['incident_number']})"
+        if node_data:
+            node_name = node_data['node_name']
+            attributes = node_data['attributes']
+            store_count = get_store_count(attributes['sql_query'])
 
-        # Display node details
-        details_box.markdown("### Node Details")
-        details_box.markdown(f"**Node Name:** {node_name}")
-        details_box.markdown(f"**Node ID:** {node_id}")
-        details_box.markdown(f"**Incident Number:** {incident_number_link}")
-        details_box.markdown(f"**Stores Count:** {store_count}")
+            # Create a random link for the incident number
+            incident_number_link = f"[{attributes['incident_number']}](https://example.com/{attributes['incident_number']})"
 
-        # Display the sales plot for the clicked node
-        create_sales_plot(node_name)
+            # Display node details
+            details_box.markdown(f"### Node Details")
+            details_box.markdown(f"**Node Name:** {node_name}")
+            details_box.markdown(f"**Node ID:** {node_id}")
+            details_box.markdown(f"**Incident Number:** {incident_number_link}")
+            details_box.markdown(f"**Stores Count:** {store_count}")
 
-# Check for incoming messages and update session state
+            # Display the sales plot for the clicked node
+            create_sales_plot(node_name)
+
+# Check for node clicks and update session state
 def update_node_id():
+    # JavaScript sends messages with the node ID
     if st.session_state.node_id is None:
+        # Listen for messages from JavaScript
         st.session_state.node_id = st.experimental_get_query_params().get('node_id', [None])[0]
     
-    if st.session_state.node_id:
-        display_node_details(st.session_state.node_id)
+    callback_node_click()
 
 update_node_id()
-
-# Display navigation path (e.g., node1 >> node2 >> node3)
-if st.session_state.node_id:
-    path = " >> ".join(node['node_name'] for node in nodes_data if node['id'] == st.session_state.node_id)
-    st.markdown(f"**Current Path:** {path}")
