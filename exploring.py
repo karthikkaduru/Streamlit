@@ -106,4 +106,19 @@ def display_node_details(node_id):
 
         # Display each detail separately to ensure all are shown
         details_box.markdown("### Node Details")
- 
+        details_box.markdown(f"**Node Name:** {node_name}")
+        details_box.markdown(f"**Node ID:** {node_id}")
+        details_box.markdown(f"**Stores Count:** {store_count}")  # Should display the store count
+        details_box.markdown(f"**Incident Number:** {incident_number_link}")  # Incident number as hyperlink
+
+        # Display the sales plot for the clicked node
+        create_sales_plot(node_name)
+    else:
+        details_box.markdown("Node not found.")
+
+# Select box to choose a node
+node_ids = [node['id'] for node in nodes_data]
+selected_node_id = st.selectbox("Select a node to view details", node_ids)
+
+if selected_node_id:
+    display_node_details(selected_node_id)
