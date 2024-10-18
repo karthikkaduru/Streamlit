@@ -108,7 +108,7 @@ def display_node_details(node_id):
         details_box.markdown("### Node Details")
         details_box.markdown(f"**Node Name:** {node_name}")
         details_box.markdown(f"**Node ID:** {node_id}")
-        details_box.markdown(f"**Stores Count:** {store_count}")
+        details_box.markdown(f"**Stores Count:** {store_count}")  # Ensure this is displayed
         details_box.markdown(f"**Incident Number:** {incident_number_link}")  # Incident number as hyperlink
 
         # Display the sales plot for the clicked node
