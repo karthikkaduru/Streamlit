@@ -115,9 +115,13 @@ st.markdown("""
 </script>
 """, unsafe_allow_html=True)
 
-# Handle node click messages from JavaScript
-def handle_node_click():
-    if "node_id" in st.session_state:
+# Handle incoming messages from JavaScript
+if "node_id" not in st.session_state:
+    st.session_state.node_id = None
+
+# Listen for messages from JavaScript
+def callback_node_click():
+    if st.session_state.node_id is not None:
         node_id = st.session_state.node_id
         node_data = next((node for node in nodes_data if node['id'] == node_id), None)
 
@@ -139,12 +143,13 @@ def handle_node_click():
             # Display the sales plot for the clicked node
             create_sales_plot(node_name)
 
-# Handle incoming messages from JavaScript
-st.session_state.node_id = None  # Initialize the session state variable
+# Check for node clicks and update session state
+def update_node_id():
+    # JavaScript sends messages with the node ID
+    if st.session_state.node_id is None:
+        # Listen for messages from JavaScript
+        st.session_state.node_id = st.experimental_get_query_params().get('node_id', [None])[0]
+    
+    callback_node_click()
 
-if st.session_state.node_id is None:
-    # Listen for messages from JavaScript
-    st.experimental_rerun()
-
-# Call the function to handle node clicks
-handle_node_click()
+update_node_id()
