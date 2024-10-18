@@ -89,10 +89,10 @@ HtmlFile = open("network.html", 'r', encoding='utf-8')
 source_code = HtmlFile.read() 
 st.components.v1.html(source_code, height=600)
 
-# Create a container for node details
+# Create containers for node details
 details_box = st.empty()
-details_box_1=st.empty()
-details_box_2=st.empty()# Placeholder for details
+details_box_1 = st.empty()
+details_box_2 = st.empty()  # Placeholder for details
 
 # Function to display node details
 def display_node_details(node_id):
@@ -118,9 +118,15 @@ def display_node_details(node_id):
     else:
         details_box.markdown("Node not found.")
 
+# **New Search Functionality**
+search_query = st.text_input("Search for Node ID:", "")  # **Added this line**
+filtered_node_ids = [node['id'] for node in nodes_data if search_query in node['id']]  # **Added this line**
+
 # Select box to choose a node
-node_ids = [node['id'] for node in nodes_data]
-selected_node_id = st.selectbox("Select a node to view details", node_ids)
+if filtered_node_ids:
+    selected_node_id = st.selectbox("Select a node to view details", filtered_node_ids)  # **Updated this line**
+else:
+    selected_node_id = st.selectbox("Select a node to view details", [node['id'] for node in nodes_data])  # **Updated this line**
 
 if selected_node_id:
     display_node_details(selected_node_id)
