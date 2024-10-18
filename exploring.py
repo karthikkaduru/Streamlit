@@ -2,8 +2,8 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import json
-from pyvis.network import Network
 import matplotlib.pyplot as plt
+import networkx as nx
 
 # Sample JSON data for nodes
 nodes_json = '''
@@ -35,6 +35,9 @@ nodes_json = '''
 ]
 '''
 
+# Parse JSON data
+nodes_data = json.loads(nodes_json)
+
 # Sample data to simulate a database
 data = {
     'location': ['Location-1', 'Location-1', 'Location-2', 'Location-3', 'Location-3', 'Location-3'],
@@ -48,7 +51,7 @@ def get_store_count(sql_query):
     location = sql_query.split("'")[1]  # Extract location from query
     return stores_df[stores_df['location'] == location].shape[0]
 
-# Function to create a sales plot
+# Function to create a fixed plot for sales
 def create_sales_plot(node_name):
     location_sales = stores_df[stores_df['location'] == node_name]
     plt.figure()
@@ -62,70 +65,55 @@ def create_sales_plot(node_name):
 # Streamlit App
 st.title("Node Visualization Flowchart")
 
-# Create the network graph
-net = Network(height='600px', width='100%', notebook=True)
+# Create a directed graph using NetworkX
+G = nx.DiGraph()
 
-# Load nodes from JSON
-nodes_data = json.loads(nodes_json)
-
-# Add nodes to the graph
+# Add nodes and edges to the graph
+edges = [("1", "2"), ("2", "3"), ("3", "1")]  # Define connections between nodes
 for node in nodes_data:
-    net.add_node(node['id'], label=node['node_name'], title=f"Incident: {node['attributes']['incident_number']}", color='lightblue')
+    G.add_node(node['id'], name=node['node_name'], incident_number=node['attributes']['incident_number'])
 
-# Define links between nodes
-links = "1>>2>>3"  # You can modify this to represent your connections
-for link in links.split(">>"):
-    net.add_edge(link, str(int(link) % 3 + 1))  # Simple link logic to form a cycle
+for edge in edges:
+    G.add_edge(*edge)
 
-# Save and display the network graph
-net.show("network.html")
-HtmlFile = open("network.html", 'r', encoding='utf-8')
-source_code = HtmlFile.read() 
-st.components.v1.html(source_code, height=600)
+# Store node details in session state
+if "node_details" not in st.session_state:
+    st.session_state.node_details = None
 
-# Create a container for node details
-details_box = st.empty()
+# Display buttons for each node
+for node in nodes_data:
+    node_id = node['id']
+    node_name = node['node_name']
+    
+    if st.button(node_name):
+        # Update node details in session state
+        attributes = node['attributes']
+        store_count = get_store_count(attributes['sql_query'])
+        incident_number_link = f"[{attributes['incident_number']}](https://www.google.com)"
 
-# JavaScript to handle node clicks
-st.markdown("""
-<script>
-    const network = document.getElementById("mynetwork");
-    network.on("click", function(params) {
-        if (params.nodes.length > 0) {
-            const nodeId = params.nodes[0];
-            window.parent.postMessage({node_id: nodeId}, '*');
+        # Store details in session state
+        st.session_state.node_details = {
+            "name": node_name,
+            "id": node_id,
+            "incident_number": incident_number_link,
+            "stores_count": store_count
         }
-    });
-</script>
-""", unsafe_allow_html=True)
 
-# Handling node click updates
-if "node_id" not in st.session_state:
-    st.session_state.node_id = None
+# Show node details if any node has been clicked
+if st.session_state.node_details:
+    details = st.session_state.node_details
+    st.markdown(f"### Node Details")
+    st.markdown(f"**Node Name:** {details['name']}")
+    st.markdown(f"**Node ID:** {details['id']}")
+    st.markdown(f"**Incident Number:** {details['incident_number']}")
+    st.markdown(f"**Stores Count:** {details['stores_count']}")
 
-def update_node_details():
-    if st.session_state.node_id:
-        node_data = next((node for node in nodes_data if node['id'] == st.session_state.node_id), None)
-        if node_data:
-            node_name = node_data['node_name']
-            attributes = node_data['attributes']
-            store_count = get_store_count(attributes['sql_query'])
-            incident_number_link = f"[{attributes['incident_number']}](https://www.google.com)"
+    # Display the sales plot for the clicked node
+    create_sales_plot(details['name'])
 
-            # Display node details
-            details_box.markdown(f"### Node Details")
-            details_box.markdown(f"**Node Name:** {node_name}")
-            details_box.markdown(f"**Node ID:** {st.session_state.node_id}")
-            details_box.markdown(f"**Incident Number:** {incident_number_link}")
-            details_box.markdown(f"**Stores Count:** {store_count}")
-
-            # Display the sales plot for the clicked node
-            create_sales_plot(node_name)
-
-# Check if a node has been clicked
-def handle_node_click():
-    if st.session_state.node_id is not None:
-        update_node_details()
-        
-# Call to handle clicks
-handle_node_click()
+# Draw the network graph
+plt.figure(figsize=(8, 5))
+pos = nx.spring_layout(G)  # positions for all nodes
+nx.draw(G, pos, with_labels=True, node_size=2000, node_color='lightblue', font_size=10, font_weight='bold', arrows=True)
+plt.title("Flowchart of Nodes")
+st.pyplot(plt)
