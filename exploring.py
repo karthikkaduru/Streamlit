@@ -89,10 +89,6 @@ st.components.v1.html(source_code, height=600)
 # Create a container for node details
 details_box = st.empty()  # Placeholder for details
 
-# Initialize session state for node ID
-if "node_id" not in st.session_state:
-    st.session_state.node_id = None
-
 # JavaScript to handle node clicks
 st.markdown("""
 <script>
@@ -115,39 +111,41 @@ st.markdown("""
 </script>
 """, unsafe_allow_html=True)
 
-# Display node details based on the clicked node ID
-def display_node_details(node_id):
-    node_data = next((node for node in nodes_data if node['id'] == node_id), None)
-    
-    if node_data:
-        node_name = node_data['node_name']
-        attributes = node_data['attributes']
-        store_count = get_store_count(attributes['sql_query'])
-        
-        # Create a random link for the incident number
-        incident_number_link = f"[{attributes['incident_number']}](https://example.com/{attributes['incident_number']})"
+# Listen for messages from JavaScript and update session state
+def callback_node_click():
+    if st.session_state.get('node_id') is not None:
+        node_id = st.session_state.node_id
+        node_data = next((node for node in nodes_data if node['id'] == node_id), None)
 
-        # Display node details
-        details_box.markdown("### Node Details")
-        details_box.markdown(f"**Node Name:** {node_name}")
-        details_box.markdown(f"**Node ID:** {node_id}")
-        details_box.markdown(f"**Incident Number:** {incident_number_link}")
-        details_box.markdown(f"**Stores Count:** {store_count}")
+        if node_data:
+            node_name = node_data['node_name']
+            attributes = node_data['attributes']
+            store_count = get_store_count(attributes['sql_query'])
 
-        # Display the sales plot for the clicked node
-        create_sales_plot(node_name)
+            # Create a random link for the incident number
+            incident_number_link = f"[{attributes['incident_number']}](https://example.com/{attributes['incident_number']})"
 
-# Update node ID from messages
-def update_node_id():
-    if st.session_state.node_id is None:
-        # Listen for messages from JavaScript
-        message = st.session_state.get('message')
-        if message and 'node_id' in message:
-            st.session_state.node_id = message['node_id']
-    
-    if st.session_state.node_id:
-        display_node_details(st.session_state.node_id)
+            # Display node details
+            details_box.markdown("### Node Details")
+            details_box.markdown(f"**Node Name:** {node_name}")
+            details_box.markdown(f"**Node ID:** {node_id}")
+            details_box.markdown(f"**Incident Number:** {incident_number_link}")
+            details_box.markdown(f"**Stores Count:** {store_count}")
+
+            # Display the sales plot for the clicked node
+            create_sales_plot(node_name)
 
 # Check for incoming messages and update session state
-st.experimental_set_query_params(node_id=st.session_state.node_id)
+def update_node_id():
+    if "node_id" not in st.session_state:
+        st.session_state.node_id = None
+
+    # Listen for messages from JavaScript
+    message = st.session_state.get('message')
+    if message and 'node_id' in message:
+        st.session_state.node_id = message['node_id']
+
+    callback_node_click()
+
+# Update node ID and display details
 update_node_id()
