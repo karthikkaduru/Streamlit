@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 import json
 import matplotlib.pyplot as plt
-import networkx as nx
 
 # Sample JSON data for nodes
 nodes_json = '''
@@ -65,55 +64,47 @@ def create_sales_plot(node_name):
 # Streamlit App
 st.title("Node Visualization Flowchart")
 
-# Create a directed graph using NetworkX
-G = nx.DiGraph()
-
-# Add nodes and edges to the graph
-edges = [("1", "2"), ("2", "3"), ("3", "1")]  # Define connections between nodes
-for node in nodes_data:
-    G.add_node(node['id'], name=node['node_name'], incident_number=node['attributes']['incident_number'])
-
-for edge in edges:
-    G.add_edge(*edge)
-
-# Store node details in session state
-if "node_details" not in st.session_state:
-    st.session_state.node_details = None
+# Create a container for node details
+details_box = st.empty()
 
 # Display buttons for each node
-for node in nodes_data:
-    node_id = node['id']
-    node_name = node['node_name']
-    
-    if st.button(node_name):
-        # Update node details in session state
-        attributes = node['attributes']
-        store_count = get_store_count(attributes['sql_query'])
-        incident_number_link = f"[{attributes['incident_number']}](https://www.google.com)"
+col1, col2, col3 = st.columns(3)
 
-        # Store details in session state
-        st.session_state.node_details = {
-            "name": node_name,
-            "id": node_id,
-            "incident_number": incident_number_link,
-            "stores_count": store_count
-        }
+with col1:
+    if st.button("Location-1", key="Location-1"):
+        selected_node = "Location-1"
+    if st.button("Location-2", key="Location-2"):
+        selected_node = "Location-2"
+    if st.button("Location-3", key="Location-3"):
+        selected_node = "Location-3"
 
-# Show node details if any node has been clicked
-if st.session_state.node_details:
-    details = st.session_state.node_details
-    st.markdown(f"### Node Details")
-    st.markdown(f"**Node Name:** {details['name']}")
-    st.markdown(f"**Node ID:** {details['id']}")
-    st.markdown(f"**Incident Number:** {details['incident_number']}")
-    st.markdown(f"**Stores Count:** {details['stores_count']}")
+# Visual lines between buttons
+st.markdown("""
+    <style>
+    .line {
+        position: absolute;
+        height: 2px;
+        background-color: black;
+        z-index: -1;
+    }
+    </style>
+    <div class="line" style="top: 65px; left: 30%; width: 40%;"></div>
+    <div class="line" style="top: 65px; left: 65%; width: 40%;"></div>
+""", unsafe_allow_html=True)
+
+# Show details for the selected node
+if 'selected_node' in locals():
+    node_data = next(node for node in nodes_data if node['node_name'] == selected_node)
+    attributes = node_data['attributes']
+    store_count = get_store_count(attributes['sql_query'])
+    incident_number_link = f"[{attributes['incident_number']}](https://www.google.com)"
+
+    # Display node details
+    details_box.markdown(f"### Node Details")
+    details_box.markdown(f"**Node Name:** {node_data['node_name']}")
+    details_box.markdown(f"**Node ID:** {node_data['id']}")
+    details_box.markdown(f"**Incident Number:** {incident_number_link}")
+    details_box.markdown(f"**Stores Count:** {store_count}")
 
     # Display the sales plot for the clicked node
-    create_sales_plot(details['name'])
-
-# Draw the network graph
-plt.figure(figsize=(8, 5))
-pos = nx.spring_layout(G)  # positions for all nodes
-nx.draw(G, pos, with_labels=True, node_size=2000, node_color='lightblue', font_size=10, font_weight='bold', arrows=True)
-plt.title("Flowchart of Nodes")
-st.pyplot(plt)
+    create_sales_plot(node_data['node_name'])
