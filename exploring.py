@@ -101,7 +101,8 @@ def display_node_details(node_id):
         attributes = node_data['attributes']
         store_count = get_store_count(attributes['sql_query'])
 
-        incident_number_link = f"[{attributes['incident_number']}](https://example.com/{attributes['incident_number']})"
+        # Updated incident number link to Google
+        incident_number_link = f"[{attributes['incident_number']}](https://www.google.com)"
 
         # Display node details
         details_box.markdown("### Node Details")
