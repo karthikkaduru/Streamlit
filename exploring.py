@@ -75,9 +75,10 @@ net = Network(height='600px', width='100%', notebook=True)
 for node in nodes_data:
     net.add_node(node['id'], label=node['node_name'], title=f"Incident: {node['attributes']['incident_number']}", color='lightblue')
 
-# Add edges from the simple links string
-for link in links_string.split('>>'):
-    net.add_edge(link, link)  # Adjust this as necessary for your logic
+# Add edges based on the simple links string
+links = links_string.split('>>')
+for i in range(len(links) - 1):
+    net.add_edge(links[i], links[i + 1])  # Create a directed edge from one node to the next
 
 # Save and display the network graph
 net.show("network.html")
