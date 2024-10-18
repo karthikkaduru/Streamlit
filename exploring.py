@@ -101,14 +101,14 @@ def display_node_details(node_id):
         attributes = node_data['attributes']
         store_count = get_store_count(attributes['sql_query'])
 
-        # Updated incident number link to Google
+        # Incident number as a hyperlink
         incident_number_link = f"[{attributes['incident_number']}](https://www.google.com)"
 
         # Display node details
         details_box.markdown("### Node Details")
         details_box.markdown(f"**Node Name:** {node_name}")
         details_box.markdown(f"**Node ID:** {node_id}")
-        details_box.markdown(f"**Incident Number:** {incident_number_link}")
+        details_box.markdown(f"**Incident Number:** {incident_number_link}")  # Incident number as hyperlink
         details_box.markdown(f"**Stores Count:** {store_count}")
 
         # Display the sales plot for the clicked node
