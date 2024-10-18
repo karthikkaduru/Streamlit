@@ -67,33 +67,37 @@ st.title("Node Visualization Flowchart")
 # Create a container for node details
 details_box = st.empty()
 
-# Display buttons for each node
+# Define buttons and store selected node
+selected_node = None
+
+# Create a layout for buttons
 col1, col2, col3 = st.columns(3)
 
 with col1:
     if st.button("Location-1", key="Location-1"):
         selected_node = "Location-1"
+with col2:
     if st.button("Location-2", key="Location-2"):
         selected_node = "Location-2"
+with col3:
     if st.button("Location-3", key="Location-3"):
         selected_node = "Location-3"
 
-# Visual lines between buttons
+# Draw visual lines between buttons
 st.markdown("""
     <style>
     .line {
-        position: absolute;
+        position: relative;
         height: 2px;
         background-color: black;
         z-index: -1;
     }
     </style>
-    <div class="line" style="top: 65px; left: 30%; width: 40%;"></div>
-    <div class="line" style="top: 65px; left: 65%; width: 40%;"></div>
+    <div class="line" style="width: 40%; margin: 0 auto; top: 70px;"></div>
 """, unsafe_allow_html=True)
 
 # Show details for the selected node
-if 'selected_node' in locals():
+if selected_node:
     node_data = next(node for node in nodes_data if node['node_name'] == selected_node)
     attributes = node_data['attributes']
     store_count = get_store_count(attributes['sql_query'])
