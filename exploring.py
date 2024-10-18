@@ -35,12 +35,6 @@ nodes_json = '''
 ]
 '''
 
-# Define links as a simple string
-links_string = "1>>2>>3"
-
-# Parse JSON data
-nodes_data = json.loads(nodes_json)
-
 # Sample data to simulate a database
 data = {
     'location': ['Location-1', 'Location-1', 'Location-2', 'Location-3', 'Location-3', 'Location-3'],
@@ -54,7 +48,7 @@ def get_store_count(sql_query):
     location = sql_query.split("'")[1]  # Extract location from query
     return stores_df[stores_df['location'] == location].shape[0]
 
-# Function to create a fixed plot for sales
+# Function to create a sales plot
 def create_sales_plot(node_name):
     location_sales = stores_df[stores_df['location'] == node_name]
     plt.figure()
@@ -71,14 +65,17 @@ st.title("Node Visualization Flowchart")
 # Create the network graph
 net = Network(height='600px', width='100%', notebook=True)
 
-# Add nodes
+# Load nodes from JSON
+nodes_data = json.loads(nodes_json)
+
+# Add nodes to the graph
 for node in nodes_data:
     net.add_node(node['id'], label=node['node_name'], title=f"Incident: {node['attributes']['incident_number']}", color='lightblue')
 
-# Add edges based on the simple links string
-links = links_string.split('>>')
-for i in range(len(links) - 1):
-    net.add_edge(links[i], links[i + 1])  # Create a directed edge from one node to the next
+# Define links between nodes
+links = "1>>2>>3"  # You can modify this to represent your connections
+for link in links.split(">>"):
+    net.add_edge(link, str(int(link) % 3 + 1))  # Simple link logic to form a cycle
 
 # Save and display the network graph
 net.show("network.html")
@@ -87,74 +84,58 @@ source_code = HtmlFile.read()
 st.components.v1.html(source_code, height=600)
 
 # Create a container for node details
-details_box = st.empty()  # Placeholder for details
-
-# Hidden input to store selected node ID
-if "selected_node_id" not in st.session_state:
-    st.session_state.selected_node_id = None
-
-# Function to display node details
-def display_node_details(node_id):
-    node_data = next((node for node in nodes_data if node['id'] == node_id), None)
-
-    if node_data:
-        node_name = node_data['node_name']
-        attributes = node_data['attributes']
-        store_count = get_store_count(attributes['sql_query'])
-
-        # Create a link for the incident number
-        incident_number_link = f"[{attributes['incident_number']}](https://example.com/{attributes['incident_number']})"
-
-        # Display node details
-        details_box.markdown("### Node Details")
-        details_box.markdown(f"**Node Name:** {node_name}")
-        details_box.markdown(f"**Node ID:** {node_id}")
-        details_box.markdown(f"**Incident Number:** {incident_number_link}")
-        details_box.markdown(f"**Stores Count:** {store_count}")
-
-        # Display the sales plot for the clicked node
-        create_sales_plot(node_name)
+details_box = st.empty()
 
 # JavaScript to handle node clicks
 st.markdown("""
 <script>
-    function getNodeId(event) {
-        const nodes = event.nodes; // Get the clicked node id
-        if (nodes.length) {
-            const nodeId = nodes[0];
-            // Send the clicked node ID back to Streamlit
+    const network = document.getElementById("mynetwork");
+    network.on("click", function(params) {
+        if (params.nodes.length > 0) {
+            const nodeId = params.nodes[0];
             window.parent.postMessage({node_id: nodeId}, '*');
-        }
-    }
-
-    // Listen for click events on the network graph
-    document.addEventListener("DOMContentLoaded", function() {
-        const network = document.getElementById("mynetwork");
-        if (network) {
-            network.on("click", getNodeId);
         }
     });
 </script>
 """, unsafe_allow_html=True)
 
 # Handle incoming messages from JavaScript
-if "node_id" in st.session_state:
-    node_id = st.session_state.node_id
-    display_node_details(node_id)
+if "node_id" not in st.session_state:
+    st.session_state.node_id = None
 
 # Listen for messages from JavaScript
 def callback_node_click():
-    # Get the node_id from the incoming message
-    if st.session_state.selected_node_id is not None:
-        display_node_details(st.session_state.selected_node_id)
+    if st.session_state.node_id is not None:
+        node_id = st.session_state.node_id
+        node_data = next((node for node in nodes_data if node['id'] == node_id), None)
 
-# Check for node clicks and update session state
+        if node_data:
+            node_name = node_data['node_name']
+            attributes = node_data['attributes']
+            store_count = get_store_count(attributes['sql_query'])
+            incident_number_link = f"[{attributes['incident_number']}](https://www.google.com)"
+
+            # Display node details
+            details_box.markdown(f"### Node Details")
+            details_box.markdown(f"**Node Name:** {node_name}")
+            details_box.markdown(f"**Node ID:** {node_id}")
+            details_box.markdown(f"**Incident Number:** {incident_number_link}")
+            details_box.markdown(f"**Stores Count:** {store_count}")
+
+            # Display the sales plot for the clicked node
+            create_sales_plot(node_name)
+
+# Update node_id from messages
 def update_node_id():
-    # JavaScript sends messages with the node ID
-    if st.session_state.selected_node_id is None:
-        # Listen for messages from JavaScript
-        st.session_state.selected_node_id = st.experimental_get_query_params().get('node_id', [None])[0]
-    
-    callback_node_click()
+    import json
+    from streamlit.server.server import Server
+
+    server = Server.get_current()
+    if server:
+        messages = server.get_messages()
+        for message in messages:
+            if "node_id" in message:
+                st.session_state.node_id = message["node_id"]
 
 update_node_id()
+callback_node_click()
