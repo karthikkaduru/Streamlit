@@ -5,8 +5,8 @@ import json
 from pyvis.network import Network
 import matplotlib.pyplot as plt
 
-# Sample JSON data for nodes
-nodes_json = '''
+# Sample JSON data for Team A
+team_a_json = '''
 [
     {
         "id": "1",
@@ -35,17 +35,51 @@ nodes_json = '''
 ]
 '''
 
-# Define links as a simple string
-links_string = "1>>2>>3"
-
-# Parse JSON data
-nodes_data = json.loads(nodes_json)
+# Sample JSON data for Team B
+team_b_json = '''
+[
+    {
+        "id": "4",
+        "node_name": "Location-4",
+        "attributes": {
+            "sql_query": "SELECT COUNT(*) FROM stores WHERE location = 'Location-4'",
+            "incident_number": "INC1122"
+        }
+    },
+    {
+        "id": "5",
+        "node_name": "Location-5",
+        "attributes": {
+            "sql_query": "SELECT COUNT(*) FROM stores WHERE location = 'Location-5'",
+            "incident_number": "INC3344"
+        }
+    },
+    {
+        "id": "6",
+        "node_name": "Location-6",
+        "attributes": {
+            "sql_query": "SELECT COUNT(*) FROM stores WHERE location = 'Location-6'",
+            "incident_number": "INC5566"
+        }
+    },
+    {
+        "id": "7",
+        "node_name": "Location-7",
+        "attributes": {
+            "sql_query": "SELECT COUNT(*) FROM stores WHERE location = 'Location-7'",
+            "incident_number": "INC7788"
+        }
+    }
+]
+'''
 
 # Sample data to simulate a database
 data = {
-    'location': ['Location-1', 'Location-1', 'Location-2', 'Location-3', 'Location-3', 'Location-3'],
-    'store_name': ['Store A', 'Store B', 'Store C', 'Store D', 'Store E', 'Store F'],
-    'sales': np.random.randint(100, 500, size=6)  # Random sales data
+    'location': ['Location-1', 'Location-1', 'Location-2', 'Location-3', 'Location-3', 'Location-3', 
+                 'Location-4', 'Location-5', 'Location-6', 'Location-7'],
+    'store_name': ['Store A', 'Store B', 'Store C', 'Store D', 'Store E', 'Store F', 
+                   'Store G', 'Store H', 'Store I', 'Store J'],
+    'sales': np.random.randint(100, 500, size=10)  # Random sales data
 }
 stores_df = pd.DataFrame(data)
 
@@ -71,6 +105,15 @@ def create_sales_plot(node_name):
 # Streamlit App
 st.title("Node Visualization Flowchart")
 
+# Team selection
+team_option = st.selectbox("Select a Team", ["Team A", "Team B"])
+
+# Load the appropriate team JSON data based on selection
+if team_option == "Team A":
+    nodes_data = json.loads(team_a_json)
+elif team_option == "Team B":
+    nodes_data = json.loads(team_b_json)
+
 # Create the network graph
 net = Network(height='600px', width='100%', notebook=True)
 
@@ -78,7 +121,9 @@ net = Network(height='600px', width='100%', notebook=True)
 for node in nodes_data:
     net.add_node(node['id'], label=node['node_name'], title=f"Incident: {node['attributes']['incident_number']}", color='lightblue')
 
-# Add edges based on the simple links string
+# Add edges based on a simple links string
+# For simplicity, let's assume the links are the same for both teams.
+links_string = "1>>2>>3" if team_option == "Team A" else "4>>5>>6>>7"
 links = links_string.split('>>')
 for i in range(len(links) - 1):
     net.add_edge(links[i], links[i + 1])  # Create a directed edge from one node to the next
@@ -118,15 +163,9 @@ def display_node_details(node_id):
     else:
         details_box.markdown("Node not found.")
 
-# **New Search Functionality**
-search_query = st.text_input("Search for Node ID:", "")  # **Added this line**
-filtered_node_ids = [node['id'] for node in nodes_data if search_query in node['id']]  # **Added this line**
-
 # Select box to choose a node
-if filtered_node_ids:
-    selected_node_id = st.selectbox("Select a node to view details", filtered_node_ids)  # **Updated this line**
-else:
-    selected_node_id = st.selectbox("Select a node to view details", [node['id'] for node in nodes_data])  # **Updated this line**
+node_ids = [node['id'] for node in nodes_data]
+selected_node_id = st.selectbox("Select a node to view details", node_ids)
 
 if selected_node_id:
     display_node_details(selected_node_id)
