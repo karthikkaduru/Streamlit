@@ -2,7 +2,6 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import json
-from pyvis.network import Network
 import matplotlib.pyplot as plt
 
 # Sample JSON data for nodes
@@ -68,52 +67,55 @@ def create_sales_plot(node_name):
 # Streamlit App
 st.title("Node Visualization Flowchart")
 
-# Create the network graph
-net = Network(height='600px', width='100%', notebook=True)
-
-# Add nodes
-for node in nodes_data:
-    net.add_node(node['id'], label=node['node_name'], title=f"Incident: {node['attributes']['incident_number']}", color='lightblue')
-
-# Add edges based on the simple links string
-links = links_string.split('>>')
-for i in range(len(links) - 1):
-    net.add_edge(links[i], links[i + 1])  # Create a directed edge from one node to the next
-
-# Save and display the network graph
-net.show("network.html")
-HtmlFile = open("network.html", 'r', encoding='utf-8')
-source_code = HtmlFile.read() 
-st.components.v1.html(source_code, height=600)
-
 # Create a container for node details
 details_box = st.empty()  # Placeholder for details
 
-# Function to display node details
-def display_node_details(node_id):
-    node_data = next((node for node in nodes_data if node['id'] == node_id), None)
+# Create buttons for nodes
+selected_node_id = None
 
-    if node_data:
-        node_name = node_data['node_name']
-        attributes = node_data['attributes']
-        store_count = get_store_count(attributes['sql_query'])
+col1, col2, col3 = st.columns(3)
 
-        # Create a link for the incident number
-        incident_number_link = f"[{attributes['incident_number']}](https://example.com/{attributes['incident_number']})"
+with col1:
+    if st.button("Location-1"):
+        selected_node_id = "1"
+with col2:
+    if st.button("Location-2"):
+        selected_node_id = "2"
+with col3:
+    if st.button("Location-3"):
+        selected_node_id = "3"
 
-        # Display node details
-        details_box.markdown("### Node Details")
-        details_box.markdown(f"**Node Name:** {node_name}")
-        details_box.markdown(f"**Node ID:** {node_id}")
-        details_box.markdown(f"**Incident Number:** {incident_number_link}")
-        details_box.markdown(f"**Stores Count:** {store_count}")
-
-        # Display the sales plot for the clicked node
-        create_sales_plot(node_name)
-
-# Select box to choose a node
-node_ids = [node['id'] for node in nodes_data]
-selected_node_id = st.selectbox("Select a node to view details", node_ids)
-
+# Show details for the selected node
 if selected_node_id:
-    display_node_details(selected_node_id)
+    node_data = next(node for node in nodes_data if node['id'] == selected_node_id)
+    attributes = node_data['attributes']
+    store_count = get_store_count(attributes['sql_query'])
+    incident_number_link = f"[{attributes['incident_number']}](https://www.google.com)"
+
+    # Display node details
+    details_box.markdown("### Node Details")
+    details_box.markdown(f"**Node Name:** {node_data['node_name']}")
+    details_box.markdown(f"**Node ID:** {node_data['id']}")
+    details_box.markdown(f"**Incident Number:** {incident_number_link}")
+    details_box.markdown(f"**Stores Count:** {store_count}")
+
+    # Display the sales plot for the clicked node
+    create_sales_plot(node_data['node_name'])
+
+# Draw connections between buttons using Markdown
+st.markdown(
+    """
+    <style>
+    .line {
+        height: 2px;
+        background-color: black;
+        position: relative;
+        top: -30px;
+        z-index: -1;
+        width: 70%; /* Adjust width as needed */
+        margin: 0 auto;
+    }
+    </style>
+    <div class="line"></div>
+    """, unsafe_allow_html=True
+)
