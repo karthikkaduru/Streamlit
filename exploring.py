@@ -104,12 +104,18 @@ def display_node_details(node_id):
         # Incident number as a hyperlink
         incident_number_link = f"[{attributes['incident_number']}](https://www.google.com)"
 
-        # Display node details
-        details_box.markdown("### Node Details")
-        details_box.markdown(f"**Node Name:** {node_name}")
-        details_box.markdown(f"**Node ID:** {node_id}")  # Ensure this is displayed
-        details_box.markdown(f"**Incident Number:** {incident_number_link}")  # Incident number as hyperlink
-        details_box.markdown(f"**Stores Count:** {store_count}")
+        # Combine all details into one markdown string
+        details_text = (
+            "### Node Details\n"
+            f"**Node Name:** {node_name}\n"
+            f"**Node ID:** {node_id}\n"
+            f"**Stores Count:** {store_count}\n"
+            f"**Incident Number:** {incident_number_link}\n"
+        )
+
+        # Display all details at once
+        details_box.markdown(details_text)
+
         # Display the sales plot for the clicked node
         create_sales_plot(node_name)
     else:
