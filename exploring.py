@@ -89,33 +89,7 @@ st.components.v1.html(source_code, height=600)
 # Create a container for node details
 details_box = st.empty()  # Placeholder for details
 
-# Handle incoming messages from JavaScript
-if "node_id" not in st.session_state:
-    st.session_state.node_id = None
-
-# JavaScript to handle node clicks
-st.markdown("""
-<script>
-    function getNodeId(event) {
-        const nodes = event.nodes; // Get the clicked node id
-        if (nodes.length) {
-            const nodeId = nodes[0];
-            // Send the clicked node ID back to Streamlit
-            window.parent.postMessage({node_id: nodeId}, '*');
-        }
-    }
-
-    // Listen for click events on the network graph
-    document.addEventListener("DOMContentLoaded", function() {
-        const network = document.getElementById("mynetwork");
-        if (network) {
-            network.on("click", getNodeId);
-        }
-    });
-</script>
-""", unsafe_allow_html=True)
-
-# Display node details when a node is clicked
+# Function to display node details
 def display_node_details(node_id):
     node_data = next((node for node in nodes_data if node['id'] == node_id), None)
 
@@ -124,10 +98,10 @@ def display_node_details(node_id):
         attributes = node_data['attributes']
         store_count = get_store_count(attributes['sql_query'])
 
-        # Create a random link for the incident number
+        # Create a link for the incident number
         incident_number_link = f"[{attributes['incident_number']}](https://example.com/{attributes['incident_number']})"
 
-        # Update details box
+        # Display node details
         details_box.markdown("### Node Details")
         details_box.markdown(f"**Node Name:** {node_name}")
         details_box.markdown(f"**Node ID:** {node_id}")
@@ -137,19 +111,9 @@ def display_node_details(node_id):
         # Display the sales plot for the clicked node
         create_sales_plot(node_name)
 
-# Listen for messages from JavaScript
-def handle_node_click():
-    if st.session_state.node_id is not None:
-        display_node_details(st.session_state.node_id)
+# Select box to choose a node
+node_ids = [node['id'] for node in nodes_data]
+selected_node_id = st.selectbox("Select a node to view details", node_ids)
 
-# Check for messages from JavaScript
-def update_node_id():
-    if st.session_state.node_id is None:
-        st.session_state.node_id = st.experimental_get_query_params().get('node_id', [None])[0]
-
-    message = st.session_state.get('message')
-    if message and 'node_id' in message:
-        st.session_state.node_id = message['node_id']
-
-update_node_id()
-handle_node_click()
+if selected_node_id:
+    display_node_details(selected_node_id)
