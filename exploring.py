@@ -90,7 +90,9 @@ source_code = HtmlFile.read()
 st.components.v1.html(source_code, height=600)
 
 # Create a container for node details
-details_box = st.empty()  # Placeholder for details
+details_box = st.empty()
+details_box_1=st.empty()
+details_box_2=st.empty()# Placeholder for details
 
 # Function to display node details
 def display_node_details(node_id):
@@ -106,9 +108,9 @@ def display_node_details(node_id):
 
         # Display each detail separately to ensure all are shown
         details_box.markdown("### Node Details")
-        details_box.markdown(f"**Node Name:** {node_name}")
+        details_box_1.markdown(f"**Node Name:** {node_name}")
         details_box.markdown(f"**Node ID:** {node_id}")
-        details_box.markdown(f"**Stores Count:** {store_count}")  # Should display the store count
+        details_box_2.markdown(f"**Stores Count:** {store_count}")  # Should display the store count
         details_box.markdown(f"**Incident Number:** {incident_number_link}")  # Incident number as hyperlink
 
         # Display the sales plot for the clicked node
