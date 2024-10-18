@@ -104,26 +104,6 @@ def display_node_details(node_id):
         # Incident number as a hyperlink
         incident_number_link = f"[{attributes['incident_number']}](https://www.google.com)"
 
-        # Combine all details into one markdown string
-        details_text = (
-            "### Node Details\n"
-            f"**Node Name:** {node_name}\n"
-            f"**Node ID:** {node_id}\n"
-            f"**Stores Count:** {store_count}\n"
-            f"**Incident Number:** {incident_number_link}\n"
-        )
-
-        # Display all details at once
-        details_box.markdown(details_text)
-
-        # Display the sales plot for the clicked node
-        create_sales_plot(node_name)
-    else:
-        details_box.markdown("Node not found.")
-
-# Select box to choose a node
-node_ids = [node['id'] for node in nodes_data]
-selected_node_id = st.selectbox("Select a node to view details", node_ids)
-
-if selected_node_id:
-    display_node_details(selected_node_id)
+        # Display each detail separately to ensure all are shown
+        details_box.markdown("### Node Details")
+ 
