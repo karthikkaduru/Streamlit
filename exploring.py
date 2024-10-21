@@ -103,7 +103,7 @@ def create_sales_plot(node_name):
     st.pyplot(plt)
 
 # Streamlit App
-st.title("Professional Node Visualization Flowchart")
+st.title("Node Visualization Flowchart")
 
 # Team selection
 team_option = st.selectbox("Select a Team", ["Team A", "Team B"])
@@ -114,10 +114,10 @@ if team_option == "Team A":
 elif team_option == "Team B":
     nodes_data = json.loads(team_b_json)
 
-# Create the network graph with a dark sky background color
+# Create the network graph with dark sky background color
 net = Network(height='600px', width='100%', notebook=True, bgcolor='#001f3f', font_color='white')
 
-# Add nodes with detailed information and clickable links
+# Add nodes with clickable links
 for node in nodes_data:
     store_count = get_store_count(node['attributes']['sql_query'])
     url = f"https://example.com/{node['id']}"  # Replace with actual URL
@@ -135,36 +135,6 @@ for i in range(len(links) - 1):
 
 # Customize physics and layout for a professional appearance
 net.force_atlas_2based()
-net.set_options("""
-var options = {
-  "height": "600px",
-  "nodes": {
-    "shape": "dot",
-    "size": 20,
-    "font": {
-      "size": 16
-    }
-  },
-  "edges": {
-    "smooth": {
-      "type": "continuous"
-    },
-    "color": {
-      "highlight": {
-        "color": "#FF6347"  // Tomato color on hover
-      }
-    }
-  },
-  "physics": {
-    "enabled": true,
-    "barnesHut": {
-      "gravitationalConstant": -8000,
-      "springLength": 200,
-      "springConstant": 0.1
-    }
-  }
-}
-""")
 
 # Save and display the network graph
 net.show("network.html")
