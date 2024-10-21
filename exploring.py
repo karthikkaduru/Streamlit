@@ -117,13 +117,13 @@ elif team_option == "Team B":
 # Create the network graph with dark sky background color
 net = Network(height='600px', width='100%', notebook=True, bgcolor='#001f3f', font_color='white')
 
-# Add nodes with clickable links
+# Add nodes without link for location and clickable incident numbers
 for node in nodes_data:
     store_count = get_store_count(node['attributes']['sql_query'])
-    url = f"https://example.com/{node['id']}"  # Replace with actual URL
-    title_info = (f"<a href='{url}' target='_blank'>Node Name: {node['node_name']}</a><br>"
+    incident_url = f"https://www.google.com/search?q={node['attributes']['incident_number']}"  # URL for incident number
+    title_info = (f"Node Name: {node['node_name']}<br>"
                   f"Stores Count: {store_count}<br>"
-                  f"Incident Number: {node['attributes']['incident_number']}")
+                  f"<a href='{incident_url}' target='_blank'>Incident Number: {node['attributes']['incident_number']}</a>")
     net.add_node(node['id'], label=node['node_name'], title=title_info, 
                  color='skyblue', shape='dot', size=20)
 
@@ -157,7 +157,7 @@ def display_node_details(node_id):
         store_count = get_store_count(attributes['sql_query'])
 
         # Create the hyperlink for the incident number
-        incident_number_link = f"[{attributes['incident_number']}](https://www.google.com)"
+        incident_number_link = f"[{attributes['incident_number']}](https://www.google.com/search?q={attributes['incident_number']})"
 
         # Display each detail separately to ensure all are shown
         details_box.markdown("### Node Details")
