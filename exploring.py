@@ -103,7 +103,7 @@ def create_sales_plot(node_name):
     st.pyplot(plt)
 
 # Streamlit App
-st.title("Node Visualization Flowchart")
+st.title("Professional Node Visualization Flowchart")
 
 # Team selection
 team_option = st.selectbox("Select a Team", ["Team A", "Team B"])
@@ -114,23 +114,56 @@ if team_option == "Team A":
 elif team_option == "Team B":
     nodes_data = json.loads(team_b_json)
 
-# Create the network graph with dark sky background color
+# Create the network graph with a dark sky background color
 net = Network(height='600px', width='100%', notebook=True, bgcolor='#001f3f', font_color='white')
 
-# Add nodes with structured tooltip and star shape
+# Add nodes with detailed information
 for node in nodes_data:
     store_count = get_store_count(node['attributes']['sql_query'])
-    title_info = (f"Node Name: {node['node_name']}\n"
-                  f"Stores Count: {store_count}\n"
+    title_info = (f"Node Name: {node['node_name']}<br>"
+                  f"Stores Count: {store_count}<br>"
                   f"Incident Number: {node['attributes']['incident_number']}")
     net.add_node(node['id'], label=node['node_name'], title=title_info, 
-                 color='skyblue', shape='star', size=20)
+                 color='skyblue', shape='dot', size=20)
 
 # Add edges based on a simple links string
 links_string = "1>>2>>3" if team_option == "Team A" else "4>>5>>6>>7"
 links = links_string.split('>>')
 for i in range(len(links) - 1):
     net.add_edge(links[i], links[i + 1])  # Create a directed edge from one node to the next
+
+# Customize physics and layout for a professional appearance
+net.force_atlas_2based()
+net.set_options("""
+var options = {
+  "height": "600px",
+  "nodes": {
+    "shape": "dot",
+    "size": 20,
+    "font": {
+      "size": 16
+    }
+  },
+  "edges": {
+    "smooth": {
+      "type": "continuous"
+    },
+    "color": {
+      "highlight": {
+        "color": "#FF6347"  // Tomato color on hover
+      }
+    }
+  },
+  "physics": {
+    "enabled": true,
+    "barnesHut": {
+      "gravitationalConstant": -8000,
+      "springLength": 200,
+      "springConstant": 0.1
+    }
+  }
+}
+""")
 
 # Save and display the network graph
 net.show("network.html")
