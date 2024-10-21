@@ -2,7 +2,7 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import json
-from pyvis.network import Network
+import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 
 # Sample JSON data for Team A
@@ -103,7 +103,7 @@ def create_sales_plot(node_name):
     st.pyplot(plt)
 
 # Streamlit App
-st.title("Node Visualization Flowchart")
+st.title("3D Node Visualization Flowchart")
 
 # Team selection
 team_option = st.selectbox("Select a Team", ["Team A", "Team B"])
@@ -114,29 +114,38 @@ if team_option == "Team A":
 elif team_option == "Team B":
     nodes_data = json.loads(team_b_json)
 
-# Create the network graph with dark sky background color
-net = Network(height='600px', width='100%', notebook=True, bgcolor='#001f3f', font_color='white')
+# Create 3D scatter plot
+fig = go.Figure()
 
-# Add nodes with structured tooltip and star shape
+# Add nodes to the scatter plot
 for node in nodes_data:
     store_count = get_store_count(node['attributes']['sql_query'])
-    title_info = (f"Node Name: {node['node_name']}\n"
-                  f"Stores Count: {store_count}\n"
-                  f"Incident Number: {node['attributes']['incident_number']}")
-    net.add_node(node['id'], label=node['node_name'], title=title_info, 
-                 color='skyblue', shape='star', size=20)
+    fig.add_trace(go.Scatter3d(
+        x=[np.random.uniform(-10, 10)],  # Random x-coordinates
+        y=[np.random.uniform(-10, 10)],  # Random y-coordinates
+        z=[np.random.uniform(-10, 10)],  # Random z-coordinates
+        mode='markers+text',
+        marker=dict(size=10, color='skyblue'),
+        text=['DQ'],
+        textposition="top center",
+        hoverinfo='text',
+        name=f"Node: {node['node_name']}, Count: {store_count}, Incident: {node['attributes']['incident_number']}"
+    ))
 
-# Add edges based on a simple links string
-links_string = "1>>2>>3" if team_option == "Team A" else "4>>5>>6>>7"
-links = links_string.split('>>')
-for i in range(len(links) - 1):
-    net.add_edge(links[i], links[i + 1])  # Create a directed edge from one node to the next
+# Set the layout
+fig.update_layout(
+    scene=dict(
+        xaxis_title='X Axis',
+        yaxis_title='Y Axis',
+        zaxis_title='Z Axis',
+        bgcolor='#001f3f'  # Dark sky background
+    ),
+    title="3D DQ Visualization",
+    margin=dict(l=0, r=0, b=0, t=40)
+)
 
-# Save and display the network graph
-net.show("network.html")
-HtmlFile = open("network.html", 'r', encoding='utf-8')
-source_code = HtmlFile.read() 
-st.components.v1.html(source_code, height=600)
+# Display the plot
+st.plotly_chart(fig)
 
 # Create containers for node details
 details_box = st.empty()
