@@ -114,16 +114,17 @@ if team_option == "Team A":
 elif team_option == "Team B":
     nodes_data = json.loads(team_b_json)
 
-# Create the network graph
-net = Network(height='600px', width='100%', notebook=True)
+# Create the network graph with dark sky background color
+net = Network(height='600px', width='100%', notebook=True, bgcolor='#001f3f', font_color='white')
 
-# Add nodes with structured tooltip
+# Add nodes with structured tooltip and star shape
 for node in nodes_data:
     store_count = get_store_count(node['attributes']['sql_query'])
     title_info = (f"Node Name: {node['node_name']}\n"
                   f"Stores Count: {store_count}\n"
                   f"Incident Number: {node['attributes']['incident_number']}")
-    net.add_node(node['id'], label=node['node_name'], title=title_info, color='lightblue')
+    net.add_node(node['id'], label=node['node_name'], title=title_info, 
+                 color='skyblue', shape='star', size=20)
 
 # Add edges based on a simple links string
 links_string = "1>>2>>3" if team_option == "Team A" else "4>>5>>6>>7"
