@@ -119,7 +119,9 @@ net = Network(height='600px', width='100%', notebook=True)
 
 # Add nodes
 for node in nodes_data:
-    net.add_node(node['id'], label=node['node_name'], title=f"Incident: {node['attributes']['incident_number']}", color='lightblue')
+    incident_number_link = f"https://www.google.com"  # Replace with the actual URL you want
+    net.add_node(node['id'], label=node['node_name'], title=f"[Incident: {node['attributes']['incident_number']}]({incident_number_link})", color='lightblue')
+
 
 # Add edges based on a simple links string
 # For simplicity, let's assume the links are the same for both teams.
