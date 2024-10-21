@@ -117,12 +117,14 @@ elif team_option == "Team B":
 # Create the network graph
 net = Network(height='600px', width='100%', notebook=True)
 
-# Add nodes with custom data
+# Add nodes with structured tooltip
 for node in nodes_data:
     store_count = get_store_count(node['attributes']['sql_query'])
-    title_info = (f"Node Name: {node['node_name']}<br>"
-                  f"Stores Count: {store_count}<br>"
-                  f"Incident Number: {node['attributes']['incident_number']}")
+    title_info = (f"<table>"
+                  f"<tr><td><strong>Node Name:</strong></td><td>{node['node_name']}</td></tr>"
+                  f"<tr><td><strong>Stores Count:</strong></td><td>{store_count}</td></tr>"
+                  f"<tr><td><strong>Incident Number:</strong></td><td>{node['attributes']['incident_number']}</td></tr>"
+                  f"</table>")
     net.add_node(node['id'], label=node['node_name'], title=title_info, color='lightblue')
 
 # Add edges based on a simple links string
