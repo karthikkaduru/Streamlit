@@ -117,13 +117,15 @@ elif team_option == "Team B":
 # Create the network graph
 net = Network(height='600px', width='100%', notebook=True)
 
-# Add nodes
+# Add nodes with custom data
 for node in nodes_data:
-    net.add_node(node['id'], label=node['node_name'], title=f"[Incident: {node['attributes']['incident_number']}]", color='lightblue')
-
+    store_count = get_store_count(node['attributes']['sql_query'])
+    title_info = (f"Node Name: {node['node_name']}<br>"
+                  f"Stores Count: {store_count}<br>"
+                  f"Incident Number: {node['attributes']['incident_number']}")
+    net.add_node(node['id'], label=node['node_name'], title=title_info, color='lightblue')
 
 # Add edges based on a simple links string
-# For simplicity, let's assume the links are the same for both teams.
 links_string = "1>>2>>3" if team_option == "Team A" else "4>>5>>6>>7"
 links = links_string.split('>>')
 for i in range(len(links) - 1):
@@ -149,14 +151,14 @@ def display_node_details(node_id):
         attributes = node_data['attributes']
         store_count = get_store_count(attributes['sql_query'])
 
-        # Incident number as a hyperlink
+        # Create the hyperlink for the incident number
         incident_number_link = f"[{attributes['incident_number']}](https://www.google.com)"
 
         # Display each detail separately to ensure all are shown
         details_box.markdown("### Node Details")
         details_box_1.markdown(f"**Node Name:** {node_name}")
         details_box.markdown(f"**Node ID:** {node_id}")
-        details_box_2.markdown(f"**Stores Count:** {store_count}")  # Should display the store count
+        details_box.markdown(f"**Stores Count:** {store_count}")  # Should display the store count
         details_box.markdown(f"**Incident Number:** {incident_number_link}")  # Incident number as hyperlink
 
         # Display the sales plot for the clicked node
