@@ -115,17 +115,17 @@ nodes_data = json.loads(team_a_json) if team_option == "Team A" else json.loads(
 # Create the network graph
 net = Network(height='600px', width='100%', notebook=True, bgcolor='#001f3f', font_color='white')
 
-# Add nodes with detailed labels inside rectangular shapes
+# Add nodes with detailed labels inside square shapes
 for node in nodes_data:
     store_count = get_store_count(node['attributes']['sql_query'])
     incident_number = node['attributes']['incident_number']
     
     # Construct the label with details
-    label_info = (f"<strong>{node['node_name']}</strong><br>"
+    label_info = (f"{node['node_name']}<br>"
                   f"Stores Count: {store_count}<br>"
                   f"Incident Number: {incident_number}")
 
-    # Add node as rectangular shape with detailed label
+    # Add node as square shape with detailed label
     net.add_node(node['id'], label=label_info, shape='box', color='skyblue', size=20)
 
 # Add edges based on the team
@@ -162,4 +162,4 @@ if selected_node_id:
     if details:
         st.write(f"### Details for {details['node_name']}")
         st.write(f"**Stores Count:** {get_store_count(details['attributes']['sql_query'])}")
-        st.write(f"[Incident Number: {details['attributes']['incident_number']}](https://www.google.com/search?q={details['attributes']['incident_number']})")
+        st.write(f"**Incident Number:** {details['attributes']['incident_number']}")
