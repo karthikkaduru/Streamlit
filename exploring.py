@@ -129,8 +129,12 @@ for node in nodes_data:
     net.add_node(node['id'], label=label_info, shape='box', color='skyblue', size=20)
 
 # Add edges based on the team
-links = "1>>2>>3" if team_option == "Team A" else "4>>5>>6>>7"
-for i in range(len(links.split('>>')) - 1):
+if team_option == "Team A":
+    links = ["1", "2", "3"]
+elif team_option == "Team B":
+    links = ["4", "5", "6", "7"]
+
+for i in range(len(links) - 1):
     net.add_edge(links[i], links[i + 1])
 
 # Generate the network graph
