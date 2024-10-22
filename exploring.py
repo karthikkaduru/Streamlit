@@ -158,6 +158,9 @@ options = '''
   }
 }
 '''
+
+# Ensure the options string is valid JSON format
+options = options.replace("//", "")  # Remove comments to ensure valid JSON
 net.set_options(options)
 
 # Generate the network graph
