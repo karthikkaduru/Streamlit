@@ -110,7 +110,10 @@ st.sidebar.header("Select a Team")
 team_option = st.sidebar.selectbox("Team", ["Team A", "Team B"])
 
 # Load the appropriate team JSON data based on selection
-nodes_data = json.loads(team_a_json) if team_option == "Team A" else json.loads(team_b_json)
+try:
+    nodes_data = json.loads(team_a_json) if team_option == "Team A" else json.loads(team_b_json)
+except json.JSONDecodeError as e:
+    st.error(f"JSON Decode Error: {e}")
 
 # Create the network graph
 net = Network(height='600px', width='100%', notebook=True, bgcolor='#001f3f', font_color='white')
@@ -120,7 +123,7 @@ for node in nodes_data:
     store_count = get_store_count(node['attributes']['sql_query'])
     incident_number = node['attributes']['incident_number']
     
-    # Construct the label without HTML formatting
+    # Construct the label
     label_info = f"{node['node_name']}\nStores Count: {store_count}\nIncident Number: {incident_number}"
 
     # Add node as square shape with detailed label
@@ -158,8 +161,11 @@ options = '''
 }
 '''
 
-# Ensure the options string is valid JSON format
-net.set_options(options)
+# Set the options for the network
+try:
+    net.set_options(options)
+except json.JSONDecodeError as e:
+    st.error(f"Error setting options: {e}")
 
 # Generate the network graph
 net.show("network.html")
