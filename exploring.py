@@ -135,8 +135,30 @@ elif team_option == "Team B":
 for i in range(len(links) - 1):
     net.add_edge(links[i], links[i + 1])
 
+# Set options for the layout and physics
+net.set_options('''
+var options = {
+  "edges": {
+    "smooth": false  // Make edges straight
+  },
+  "layout": {
+    "hierarchical": {
+      "enabled": true,
+      "direction": 'UD',  // 'UD' for up-down, 'LR' for left-right
+      "levelSeparation": 150,
+      "nodeSpacing": 100,
+      "treeSpacing": 200
+    }
+  },
+  "physics": {
+    "enabled": true,
+    "stabilization": {
+      "enabled": true
+    }
+};
+''')
+
 # Generate the network graph
-net.force_atlas_2based()
 net.show("network.html")
 
 # Display the network graph
