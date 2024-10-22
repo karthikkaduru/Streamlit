@@ -139,7 +139,9 @@ for i in range(len(links) - 1):
 options = '''
 {
   "edges": {
-    "smooth": false  // Make edges straight
+    "smooth": {
+      "enabled": false  // Make edges straight
+    }
   },
   "layout": {
     "hierarchical": {
