@@ -136,7 +136,7 @@ for i in range(len(links) - 1):
     net.add_edge(links[i], links[i + 1])
 
 # Set options for the layout and physics
-net.set_options('''
+options = '''
 var options = {
   "edges": {
     "smooth": false  // Make edges straight
@@ -156,7 +156,8 @@ var options = {
       "enabled": true
     }
 };
-''')
+'''
+net.set_options(options)
 
 # Generate the network graph
 net.show("network.html")
