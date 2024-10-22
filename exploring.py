@@ -135,8 +135,38 @@ elif team_option == "Team B":
 for i in range(len(links) - 1):
     net.add_edge(links[i], links[i + 1])
 
-# Generate the network graph
+# Set physics options for fixed straight lines
 net.force_atlas_2based()
+net.barnes_hut()
+net.repulsion(node_distance=100)  # Set distance between nodes
+net.set_options('''var options = {
+  "edges": {
+    "smooth": false,  // Make edges straight
+    "arrows": {
+      "to": {
+        "enabled": true,
+        "scaleFactor": 1
+      }
+    }
+  },
+  "layout": {
+    "hierarchical": {
+      "enabled": false,  // Set to true for a vertical flow
+      "levelSeparation": 150,
+      "nodeSpacing": 100,
+      "treeSpacing": 200,
+      "direction": 'LR',  // 'LR' for left-right flow, 'UD' for up-down
+      "sortMethod": 'directed' // 'directed' or 'hubsize'
+    }
+  },
+  "physics": {
+    "enabled": true,
+    "stabilization": {
+      "enabled": true
+    }
+};''')
+
+# Generate the network graph
 net.show("network.html")
 
 # Display the network graph
