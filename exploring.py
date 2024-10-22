@@ -148,8 +148,8 @@ options = '''
       "enabled": true,
       "direction": "LR",
       "levelSeparation": 150,
-      "nodeSpacing": 200,  // Increased spacing between nodes
-      "treeSpacing": 300    // Increased spacing between tree branches
+      "nodeSpacing": 200,
+      "treeSpacing": 300
     }
   },
   "physics": {
