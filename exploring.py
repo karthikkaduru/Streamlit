@@ -110,10 +110,7 @@ st.sidebar.header("Select a Team")
 team_option = st.sidebar.selectbox("Team", ["Team A", "Team B"])
 
 # Load the appropriate team JSON data based on selection
-try:
-    nodes_data = json.loads(team_a_json) if team_option == "Team A" else json.loads(team_b_json)
-except json.JSONDecodeError as e:
-    st.error(f"JSON Decode Error: {e}")
+nodes_data = json.loads(team_a_json) if team_option == "Team A" else json.loads(team_b_json)
 
 # Create the network graph
 net = Network(height='600px', width='100%', notebook=True, bgcolor='#001f3f', font_color='white')
@@ -138,7 +135,7 @@ elif team_option == "Team B":
 for i in range(len(links) - 1):
     net.add_edge(links[i], links[i + 1])
 
-# Set options for the layout and physics
+# Set options for the layout and physics with increased spacing
 options = '''
 {
   "edges": {
@@ -151,8 +148,8 @@ options = '''
       "enabled": true,
       "direction": "LR",
       "levelSeparation": 150,
-      "nodeSpacing": 100,
-      "treeSpacing": 200
+      "nodeSpacing": 200,  // Increased spacing between nodes
+      "treeSpacing": 300    // Increased spacing between tree branches
     }
   },
   "physics": {
@@ -162,10 +159,7 @@ options = '''
 '''
 
 # Set the options for the network
-try:
-    net.set_options(options)
-except json.JSONDecodeError as e:
-    st.error(f"Error setting options: {e}")
+net.set_options(options)
 
 # Generate the network graph
 net.show("network.html")
