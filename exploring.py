@@ -147,8 +147,8 @@ options = '''
     "hierarchical": {
       "enabled": true,
       "direction": "LR",
-      "levelSeparation": 150,
-      "nodeSpacing": 200,
+      "levelSeparation": 250,
+      "nodeSpacing": 500,
       "treeSpacing": 300
     }
   },
