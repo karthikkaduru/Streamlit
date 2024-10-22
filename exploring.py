@@ -137,14 +137,14 @@ for i in range(len(links) - 1):
 
 # Set options for the layout and physics
 options = '''
-var options = {
+{
   "edges": {
     "smooth": false  // Make edges straight
   },
   "layout": {
     "hierarchical": {
       "enabled": true,
-      "direction": 'UD',  // 'UD' for up-down, 'LR' for left-right
+      "direction": "UD",  // 'UD' for up-down, 'LR' for left-right
       "levelSeparation": 150,
       "nodeSpacing": 100,
       "treeSpacing": 200
@@ -155,7 +155,8 @@ var options = {
     "stabilization": {
       "enabled": true
     }
-};
+  }
+}
 '''
 net.set_options(options)
 
