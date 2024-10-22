@@ -143,20 +143,20 @@ options = '''
 {
   "edges": {
     "smooth": {
-      "enabled": false  // Make edges straight
+      "enabled": false
     }
   },
   "layout": {
     "hierarchical": {
       "enabled": true,
-      "direction": "LR",  // 'UD' for up-down, 'LR' for left-right
+      "direction": "LR",
       "levelSeparation": 150,
       "nodeSpacing": 100,
       "treeSpacing": 200
     }
   },
   "physics": {
-    "enabled": false  // Disable physics for fixed layout
+    "enabled": false
   }
 }
 '''
